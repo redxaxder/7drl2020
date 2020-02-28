@@ -1,0 +1,16 @@
+language: c
+dist: trusty
+sudo: required
+
+cache:
+  directories:
+  - .spago
+  - output
+
+before_install:
+  - sudo apt-get install -y npm
+  - npm -v
+  - npm install -g spago parcel
+
+script:
+  - make clean package

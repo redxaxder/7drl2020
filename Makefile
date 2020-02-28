@@ -3,7 +3,7 @@ list: ## Show available targets.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##\s*\(.*\)/\n\t\1\n/'
 
 .PHONY: watch
-watch: ## Compile files on change with PSCID (useful for interactive development).
+watch: ## Compile files on change and run a hotswapping server
 	@npm run dev
 
 .PHONY: clean
@@ -12,7 +12,7 @@ clean: ## Remove all generated project files (keeps standard library).
 	@rm -rf dist/
 
 .PHONY: build
-build: ## Build source files and package artifacts.
+build: ## Build source files
 	@spago build
 
 .PHONY: tags
@@ -20,5 +20,5 @@ tags: build ## Create machine-readable project documentation.
 	@spago sources | xargs purs docs --format ctags
 
 .PHONY: package
-package: ##
+package: ## Build source files and bundle into browser usable package
 	@npm run bundle
