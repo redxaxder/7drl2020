@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "spago build --watch & parcel src/index/index.html",
-    "bundle": "spago build --purs-args --strict & parcel build src/index/index.html --public-url './'"
+    "bundle": "spago build --purs-args --strict && parcel build src/index/index.html --public-url './'"
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
