@@ -1,0 +1,18 @@
+{
+  "name": "7drl2020",
+  "version": "1.0.0",
+  "description": "a roguelike game",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "spago build --watch & parcel src/index/index.html",
+    "bundle": "spago build --purs-args --strict & parcel build src/index/index.html --public-url './'"
+  },
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  }
+}
