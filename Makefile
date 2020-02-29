@@ -22,3 +22,4 @@ tags: build ## Create machine-readable project documentation.
 .PHONY: package
 package: ## Build source files and bundle into browser usable package
 	@npm run bundle
+	@cp data/* dist/
