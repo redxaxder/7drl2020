@@ -14,5 +14,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "parcel": "^1.12.4"
+  },
+  "dependencies": {
+    "spago": "^0.14.0"
   }
 }
