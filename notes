@@ -1,0 +1,88 @@
+
+
+plants
+  - catching fire
+  - combos
+
+  - trees
+    - roots
+
+  - fruit!
+    - restore stamina
+    - start fires
+    - like snake!
+
+
+hero: canary?
+
+
+id scheme:
+  - color -> plant?
+  - terrain - plant
+  - plant - seedling duration
+
+Sta: ========  | 1 % 2 $ 3 !
++--------+
+|        |
+|     .  |
+|        |
+|        |
+|    +~  |
+|   +b   |
+|        |
+|        |
++--------+
+
+specific plants!
+  - tree
+    - has roots
+      - roots
+      - not flammable
+      - not attackable
+      - passable but inconvenient
+    - takes a long time to kill
+    - 3 hp
+    - flammable
+    - dies without roots
+  - grass
+    - doesnt get in the way!
+    - passable
+    - gets trampled
+    - 1 hp
+    - flammable
+  - kudzu
+    - kills nearby plants slowly
+    - spread by knights tour
+    - spreads at end of countdown
+    - flammable
+    - 2 hp
+    - needs particular soil type?
+  - some bush with roots
+    - has roots
+  - fungus
+    - kills roots
+
+  - lily pad
+    - grows on swamp
+    - prevents turn loss
+    - self destructing
+
+  - hyper spore
+    - when killed, spawns random plants in adjacent spaces
+
+
+terrain:
+  dirt    <-  grass
+  meadow  <-  trees & bushes 
+  swamp   <-  lilypads
+
+
+
+fuits!
+  - restore stamina
+  - fire fruit: start fire
+  - attack-up: buff for period of time / uses
+
+
+
+

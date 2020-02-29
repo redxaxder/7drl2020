@@ -12,17 +12,17 @@ import Data.Tile (Tile (..))
 import Data.Sprite (Sprite (..))
 import Data.Position (Position)
 import Direction (Direction)
-import UI.Framework (UI) as UIF
+import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 
-type GameState =
-  { player :: Position
-  }
+type GameState = { player :: Position }
 
 type Key = String
 
 data Action = Move Direction
 
 type UI = UIF.UI GameState Action UIState Key
+type UIAwaitingInput = UIF.UIAwaitingInput GameState Action UIState Key
+type UIAction = UIF.UIAction GameState Action UIState Key
 
 data UIState
   = MainGame

@@ -10,6 +10,8 @@ You can edit this file as you like.
    , "psci-support"
    , "aff"
    , "node-buffer"
+   , "event"
+   , "behaviors"
    , "random"
    , "debug"
    , "newtype"

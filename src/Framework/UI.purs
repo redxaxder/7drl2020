@@ -1,6 +1,4 @@
-module UI.Framework where
-
--- Javascript key codes here: https://keycode.info/
+module Framework.UI where
 
 data UI gameState action uiData inputData =
     UIAwaitingInput (UIAwaitingInput gameState action uiData inputData)
