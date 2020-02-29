@@ -4,7 +4,7 @@ list: ## Show available targets.
 
 .PHONY: watch
 watch: ## Compile files on change and run a hotswapping server
-	@npm run dev
+	@spago build --watch
 
 .PHONY: clean
 clean: ## Remove all generated project files (keeps standard library).
@@ -21,5 +21,6 @@ tags: build ## Create machine-readable project documentation.
 
 .PHONY: package
 package: ## Build source files and bundle into browser usable package
-	@npm run bundle
+	@mkdir dist
 	@cp data/* dist/
+	@npm run bundle

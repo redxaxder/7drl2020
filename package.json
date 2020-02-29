@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "dev": "spago build --watch & parcel src/index/index.html",
+    "server": "parcel src/index/index.html",
     "bundle": "spago build --purs-args --strict && parcel build src/index/index.html --public-url './'"
   },
   "author": "",

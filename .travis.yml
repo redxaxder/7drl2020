@@ -3,9 +3,12 @@ dist: trusty
 sudo: required
 
 cache:
+  - apt
+  - npm
   directories:
   - .spago
   - output
+  - node_modules
 
 before_install:
   - sudo apt-get install -y npm

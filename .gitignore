@@ -12,4 +12,5 @@
 *.swp
 tags
 /.cache/
+/dist/
 package-lock.json

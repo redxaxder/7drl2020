@@ -5,15 +5,32 @@ import Extra.Prelude
 import Graphics.Render
   ( Context
   , clear
+  , drawLinesToGrid
+  , drawTextToGrid
   )
 import Types
-  ( GameState
+  ( GameState (..)
   , UIState (..)
+  , Position
   )
+import Constants (white)
 
 draw :: Context -> UIState -> GameState -> Effect Unit
-draw ctx uiRenderData gs = do
+draw ctx uiState gs = do
   clear ctx
-  case uiRenderData of
-       StartScreen -> pure unit
-       _ -> pure unit
+  case uiState of
+       StartScreen -> drawStartScreen ctx
+       MainGame -> drawMainGame ctx gs
+
+drawStartScreen :: Context -> Effect Unit
+drawStartScreen ctx =
+  drawLinesToGrid ctx white (V {x: 16, y: 10})
+    [ "Press any key to start" ]
+
+drawMainGame :: Context -> GameState -> Effect Unit
+drawMainGame ctx (GameState {player}) =
+  drawPlayer ctx player
+
+drawPlayer :: Context -> Position -> Effect Unit
+drawPlayer ctx p = drawTextToGrid ctx white "@" p
+

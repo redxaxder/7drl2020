@@ -10,14 +10,12 @@ import FRP.Event.Keyboard as Keyboard
 import Graphics.Draw (draw)
 import Graphics.Render (initCanvas)
 import Types
-  ( GameState
+  ( GameState (..)
   , Action
-  , UIState (..)
   , Position
   )
-import Types as T
-import Framework.UI (UI (..))
 import Framework.Engine (runEngine)
+import UI (startScreen)
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -25,7 +23,7 @@ main = unsafePartial $ launchAff_ $ do
   Just ctx <- initCanvas { canvasId: "game", spritesheetPath: "tileset.png" }
   let engineConfig =
           { inputs: Keyboard.down
-          , ui: uiInit
+          , ui: startScreen
           , init: init
           , step: update
           , ctx
@@ -36,10 +34,7 @@ main = unsafePartial $ launchAff_ $ do
   pure unit
 
 init :: GameState
-init = { player: V{x: 3, y:3}}
-
-uiInit :: T.UIAwaitingInput
-uiInit = { uiRender: StartScreen, next: \_ -> UIAwaitingInput uiInit }
+init = GameState { player: V{x: 3, y:3}}
 
 update :: GameState -> Action -> Maybe GameState
 update gs a = stepEnvironment <$> handleAction gs a

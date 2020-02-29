@@ -14,11 +14,13 @@ import Data.Position (Position)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 
-type GameState = { player :: Position }
+newtype GameState = GameState { player :: Position }
 
 type Key = String
 
-data Action = Move Direction
+data Action =
+  StartGame
+  | Move Direction
 
 type UI = UIF.UI GameState Action UIState Key
 type UIAwaitingInput = UIF.UIAwaitingInput GameState Action UIState Key
