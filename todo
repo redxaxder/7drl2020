@@ -7,12 +7,30 @@ X draw tiles
   X wall tiles
 
 X draw border
-draw inventory (3 slots?)
 
-player stamina
+terrains implemented (ad-hoc)
+  X dirt
+  X rocks
+
+plant system
+  - spawn
+  - grow
+  - growth display
+  - change state in response to player action
+  - state-based effects to plants (e.g. rootless trees)
+
+onboard plants to plant system
+  - grass
+  - trees/roots
+
+stamina system
+  - stamina-based actions
+  - plant interactions
   - report stamina (bar?)
+  - die
 
-draw game state
+fruit! system
+  - spawn fruits when collected
 
 the "it's technically a game" milestone:
   - game over screen
@@ -20,4 +38,4 @@ the "it's technically a game" milestone:
   - spawn fruits (that dont do anything)
   - collect fruits
 
-
+inventory system (3 slots?)
