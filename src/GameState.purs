@@ -8,6 +8,7 @@ import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain)
 import Entity (EntityType (..), EntityId (..), increment)
+import Random (Gen)
 
 newtype GameState = GameState
   { player :: EntityId
@@ -15,6 +16,7 @@ newtype GameState = GameState
   , positions :: Bimap EntityId Position
   , entities :: Map EntityId EntityType
   , nextEntityId :: EntityId
+  , rng :: Gen
   }
 
 newtype EntityConfig = EntityConfig
@@ -23,8 +25,8 @@ newtype EntityConfig = EntityConfig
   , entityType :: EntityType 
   }
 
-init :: GameState
-init =
+newGameState :: Gen -> GameState
+newGameState rng =
   let playerId = EntityId 0
   in GameState
      { player: playerId
@@ -34,6 +36,7 @@ init =
          [ Tuple playerId Player
          ]
      , nextEntityId: EntityId 1
+     , rng
      }
 
 createEntity :: EntityConfig -> GameState-> GameState

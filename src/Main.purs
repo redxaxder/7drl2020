@@ -10,23 +10,25 @@ import FRP.Event.Keyboard as Keyboard
 import Graphics.Draw (draw)
 import Graphics.Render (initCanvas)
 import Types
-  ( GameState
+  ( GameState (..)
   , Action (..)
   , EntityType (..)
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (init, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity)
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity)
+import Random (newGen)
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
   -- initialize canvas
   Just ctx <- initCanvas { canvasId: "game", spritesheetPath: "tileset.png" }
+  init <- liftEffect $ newGameState <$> newGen
   let engineConfig =
           { inputs: Keyboard.down
           , ui: startScreen
-          , init: init
+          , init
           , step: update
           , ctx
           , draw
@@ -42,7 +44,7 @@ stepEnvironment :: GameState -> GameState
 stepEnvironment gs = gs
 
 handleAction :: GameState -> Action -> Maybe GameState
-handleAction _ StartGame = Just init
+handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) =
   let newPos = move dir $ playerPosition gs
       ec = EntityConfig 
