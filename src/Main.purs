@@ -10,13 +10,13 @@ import FRP.Event.Keyboard as Keyboard
 import Graphics.Draw (draw)
 import Graphics.Render (initCanvas)
 import Types
-  ( GameState (..)
+  ( GameState
   , Action (..)
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import Data.Terrain(initTerrain)
+import GameState (init, playerPosition, placeEntity, getPlayer)
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -34,12 +34,6 @@ main = unsafePartial $ launchAff_ $ do
   cancel <- liftEffect $ runEngine engineConfig
   pure unit
 
-init :: GameState
-init = GameState
-  { player: V{x: 3, y:3}
-  , terrain: initTerrain
-  }
-
 update :: GameState -> Action -> Maybe GameState
 update gs a = stepEnvironment <$> handleAction gs a
 
@@ -48,6 +42,7 @@ stepEnvironment gs = gs
 
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction _ StartGame = Just init
-handleAction (GameState gs@{player}) (Move dir) =
-  Just $ GameState $ gs{ player = move dir player }
+handleAction gs (Move dir) =
+  let newPos = move dir $ playerPosition gs
+   in Just $ placeEntity (getPlayer gs) newPos gs
 

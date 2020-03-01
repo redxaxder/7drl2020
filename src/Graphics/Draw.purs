@@ -11,12 +11,13 @@ import Graphics.Render
 import Types
   ( GameState (..)
   , UIState (..)
-  , Position
   , getTerrainSprite
   , Terrain
+  , getEntityType
   )
 import Constants (white)
-import Data.Sprite as Sprite
+import Entity (lookupEntity)
+import Data.Bimap as Bimap
 
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
@@ -31,14 +32,21 @@ drawStartScreen ctx =
     [ "Press any key to start" ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx (GameState {player, terrain}) = do
+drawMainGame ctx gs@(GameState {player, terrain}) = do
   drawTerrain ctx terrain
-  drawPlayer ctx player
+  drawEntities ctx gs
 
 drawTerrain :: Context -> Terrain -> Effect Unit
 drawTerrain ctx = traverseWithIndex_ $ \pos terrainType ->
     drawSpriteToGrid ctx (getTerrainSprite terrainType) pos
 
-drawPlayer :: Context -> Position -> Effect Unit
-drawPlayer ctx p = drawSpriteToGrid ctx Sprite.player p
+drawEntities :: Context -> GameState -> Effect Unit
+drawEntities ctx g@(GameState gs) =
+  traverseWithIndex_ f (Bimap.leftMap gs.positions)
+  where
+  f entityId pos =
+    let et = getEntityType entityId g
+        { sprite } = lookupEntity et
+     in drawSpriteToGrid ctx sprite pos
+   
 

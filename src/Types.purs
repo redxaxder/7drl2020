@@ -4,20 +4,19 @@ module Types
   , module Data.Terrain
   , module Data.Sprite
   , module Data.Position
+  , module GameState
   )
   where
 
-import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
+
 import Data.Attribute (Attribute (..))
-import Data.Sprite (Sprite (..), spriteAt)
 import Data.Position (Position)
+import Data.Sprite (Sprite (..), spriteAt)
+import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
+import GameState (GameState (..), playerPosition, getEntityType)
 
-newtype GameState = GameState
-  { player :: Position
-  , terrain :: Terrain
-  }
 
 type Key = String
 

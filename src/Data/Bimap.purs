@@ -2,7 +2,6 @@ module Data.Bimap where
 
 import Extra.Prelude
 
-import Data.Map (Map)
 import Data.Map as Map
 
 
@@ -25,3 +24,12 @@ deleteR x (Bimap l r) = Bimap l (Map.delete x r)
 
 unsafeInsert :: forall a b. Ord a => Ord b => a -> b -> Bimap a b -> Bimap a b
 unsafeInsert x y (Bimap l r) = Bimap (Map.insert x y l) (Map.insert y x r)
+
+singleton :: forall a b. a -> b -> Bimap a b
+singleton a b = Bimap (Map.singleton a b) (Map.singleton b a)
+
+leftMap :: forall a b. Bimap a b -> Map a b
+leftMap (Bimap l _) = l
+
+rightMap :: forall a b. Bimap a b -> Map b a
+rightMap (Bimap _ r) = r

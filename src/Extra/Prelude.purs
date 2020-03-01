@@ -3,6 +3,7 @@ module Extra.Prelude
   , module Data.Either
   , module Data.Foldable
   , module Data.FoldableWithIndex
+  , module Data.Map
   , module Data.Maybe
   , module Data.Newtype
   , module Data.Traversable
@@ -65,7 +66,7 @@ import Data.Set as S
 import Data.Traversable (class Traversable, traverse, traverse_, sequence_, sequence, for, for_)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex, forWithIndex)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (unfoldr)
+import Data.Unfoldable (class Unfoldable, unfoldr)
 import Debug.Trace (trace, spy)
 import Effect (Effect)
 import Extra.Math (class Real, Vector(..), innerProduct, norm, toNumber, (**))

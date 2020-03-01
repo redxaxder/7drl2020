@@ -2,7 +2,7 @@ module UI where
 
 import Framework.UI (UI (..))
 import Types as T
-import Types (UIState (..), Action (..), Key, GameState (..))
+import Types (UIState (..), Action (..), Key, GameState (..), playerPosition)
 import Direction (Direction (..), move)
 import DimArray (index)
 import Extra.Prelude
@@ -34,10 +34,10 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
-chooseSensibleAction g@(GameState gs) dir = 
+chooseSensibleAction g@(GameState gs) dir =
   if canMove then run (Move dir) else runningGameUI g
   where
-    targetTerrain = index gs.terrain $ move dir gs.player
+    targetTerrain = index gs.terrain $ move dir (playerPosition g)
     canMove = case targetTerrain of
       Nothing -> false
       Just t -> not $ blocksMovement t
