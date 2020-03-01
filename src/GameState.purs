@@ -7,29 +7,46 @@ import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain)
-import Entity (EntityType (..), EntityId (..))
+import Entity (EntityType (..), EntityId (..), increment)
 
 newtype GameState = GameState
   { player :: EntityId
   , terrain :: Terrain
   , positions :: Bimap EntityId Position
   , entities :: Map EntityId EntityType
+  , nextEntityId :: EntityId
+  }
+
+newtype EntityConfig = EntityConfig
+  {
+    position :: Maybe Position
+  , entityType :: EntityType 
   }
 
 init :: GameState
 init =
   let playerId = EntityId 0
-      grassId = EntityId 1
-      grassPos = V {x:4,y:4}
   in GameState
      { player: playerId
-     , positions: Bimap.insert grassId grassPos $ Bimap.singleton playerId (V{x:5,y:5})
+     , positions: Bimap.singleton playerId (V{x:5,y:5})
      , terrain: initTerrain
      , entities:  Map.fromFoldable
          [ Tuple playerId Player
-         , Tuple grassId Grass
          ]
+     , nextEntityId: EntityId 1
      }
+
+createEntity :: EntityConfig -> GameState-> GameState
+createEntity (EntityConfig ec) (GameState gs) = 
+  let eid = gs.nextEntityId
+   in GameState gs 
+      {
+        nextEntityId = increment eid
+      , positions = case ec.position of
+                      Nothing -> gs.positions
+                      Just p -> Bimap.insert eid p gs.positions
+      , entities = Map.insert eid ec.entityType gs.entities
+      }
 
 getPlayer :: GameState -> EntityId
 getPlayer (GameState {player}) = player
@@ -47,6 +64,3 @@ placeEntity :: EntityId -> Position -> GameState -> GameState
 placeEntity eid pos (GameState gs) = 
   let newp = Bimap.insert eid pos gs.positions
    in GameState $ gs { positions = newp }
-
-
-

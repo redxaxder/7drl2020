@@ -5,6 +5,7 @@ module Types
   , module Data.Sprite
   , module Data.Position
   , module GameState
+  , module Entity
   )
   where
 
@@ -16,6 +17,7 @@ import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 import GameState (GameState (..), playerPosition, getEntityType)
+import Entity (EntityType(..))
 
 
 type Key = String

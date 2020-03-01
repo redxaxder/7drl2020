@@ -33,3 +33,5 @@ entityTable = Map.fromFoldable
   , t Grass  (spriteAt 5 0 )
   ]
 
+increment :: EntityId -> EntityId
+increment (EntityId eid) = EntityId (eid + 1)

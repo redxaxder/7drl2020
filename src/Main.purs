@@ -12,11 +12,12 @@ import Graphics.Render (initCanvas)
 import Types
   ( GameState
   , Action (..)
+  , EntityType (..)
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (init, playerPosition, placeEntity, getPlayer)
+import GameState (init, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity)
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -44,5 +45,8 @@ handleAction :: GameState -> Action -> Maybe GameState
 handleAction _ StartGame = Just init
 handleAction gs (Move dir) =
   let newPos = move dir $ playerPosition gs
-   in Just $ placeEntity (getPlayer gs) newPos gs
-
+      ec = EntityConfig 
+            { position: Just $ playerPosition gs
+            , entityType: Grass
+            }
+   in Just $ createEntity ec $ placeEntity (getPlayer gs) newPos gs
