@@ -55,7 +55,7 @@ import Data.Foldable
  , foldMap
  , intercalate
  )
-import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_)
+import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_, foldMapWithIndex, class FoldableWithIndex, foldrWithIndex, foldlWithIndex)
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust)

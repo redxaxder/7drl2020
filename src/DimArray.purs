@@ -3,7 +3,6 @@ module DimArray where
 import Extra.Prelude
 
 import Data.Array as Array
-import Data.FoldableWithIndex(class FoldableWithIndex, foldrWithIndex, foldlWithIndex, foldMapWithIndex)
 import Data.FunctorWithIndex(class FunctorWithIndex, mapWithIndex)
 
 import Data.Typelevel.Num.Sets (class Nat, toInt')

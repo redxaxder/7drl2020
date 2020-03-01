@@ -4,7 +4,6 @@ import Extra.Prelude
 
 import Data.Map as Map
 
-
 data Bimap a b = Bimap (Map a b) (Map b a)
 
 lookup :: forall a b. Ord a => a -> Bimap a b -> Maybe b
@@ -16,11 +15,19 @@ lookupR x (Bimap _ r)  = Map.lookup x r
 insert :: forall a b. Ord a => Ord b => a -> b -> Bimap a b -> Bimap a b
 insert x y = delete x >>> deleteR y >>> unsafeInsert x y
 
-delete :: forall a b. Ord a => a -> Bimap a b -> Bimap a b
-delete x (Bimap l r) = Bimap (Map.delete x l) r
+delete :: forall a b. Ord a => Ord b => a -> Bimap a b -> Bimap a b
+delete x (Bimap l r) =
+  let r' = case Map.lookup x l of
+             Nothing -> r
+             Just y -> Map.delete y r
+   in Bimap (Map.delete x l) r'
 
-deleteR :: forall a b. Ord b => b -> Bimap a b -> Bimap a b
-deleteR x (Bimap l r) = Bimap l (Map.delete x r)
+deleteR :: forall a b. Ord a => Ord b => b -> Bimap a b -> Bimap a b
+deleteR y (Bimap l r) =
+  let l' = case Map.lookup y r of
+             Nothing -> l
+             Just x -> Map.delete x l
+   in Bimap l' (Map.delete y r)
 
 unsafeInsert :: forall a b. Ord a => Ord b => a -> b -> Bimap a b -> Bimap a b
 unsafeInsert x y (Bimap l r) = Bimap (Map.insert x y l) (Map.insert y x r)
