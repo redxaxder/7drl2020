@@ -1,0 +1,23 @@
+
+game state structure
+
+draw tiles
+  - player tile
+  - floor tiles
+  - wall tiles
+
+draw border
+draw inventory (3 slots?)
+
+player stamina
+  - report stamina (bar?)
+
+draw game state
+
+the "it's technically a game" milestone:
+  - game over screen
+  - spawn simple plants behind player
+  - spawn fruits (that dont do anything)
+  - collect fruits
+
+
