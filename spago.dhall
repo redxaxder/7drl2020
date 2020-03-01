@@ -4,19 +4,20 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-   [ "console"
-   , "canvas"
-   , "effect"
-   , "psci-support"
-   , "aff"
-   , "node-buffer"
-   , "event"
+   [ "aff"
    , "behaviors"
-   , "random"
+   , "canvas"
+   , "console"
    , "debug"
+   , "effect"
+   , "event"
    , "newtype"
-   , "strings"
+   , "node-buffer"
    , "profunctor-lenses"
+   , "psci-support"
+   , "random"
+   , "strings"
+   , "typelevel"
    ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

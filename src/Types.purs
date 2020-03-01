@@ -14,7 +14,16 @@ import Data.Position (Position)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 
-newtype GameState = GameState { player :: Position }
+import DimArray (Dim)
+import Data.Typelevel.Num.Reps (D8)
+
+newtype GameState = GameState
+  { player :: Position
+  , terrain :: Terrain
+  }
+
+type Terrain = Dim D8 D8 Array TerrainType
+data TerrainType = Dirt
 
 type Key = String
 

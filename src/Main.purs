@@ -13,9 +13,14 @@ import Types
   ( GameState (..)
   , Action
   , Position
+  , Terrain
+  , TerrainType (..)
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
+import DimArray (Dim (..))
+
+import Data.Array as Array
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -34,7 +39,13 @@ main = unsafePartial $ launchAff_ $ do
   pure unit
 
 init :: GameState
-init = GameState { player: V{x: 3, y:3}}
+init = GameState 
+  { player: V{x: 3, y:3}
+  , terrain: initTerrain
+  }
+
+initTerrain :: Terrain
+initTerrain = Dim $ Array.replicate 64 Dirt
 
 update :: GameState -> Action -> Maybe GameState
 update gs a = stepEnvironment <$> handleAction gs a

@@ -63,7 +63,7 @@ import Data.Semigroup.Foldable (class Foldable1, foldMap1)
 import Data.Set (Set)
 import Data.Set as S
 import Data.Traversable (class Traversable, traverse, traverse_, sequence_, sequence, for, for_)
-import Data.TraversableWithIndex (traverseWithIndex, forWithIndex)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex, forWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (unfoldr)
 import Debug.Trace (trace, spy)
