@@ -9,7 +9,7 @@ import Effect.Aff (Aff, makeAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (error)
 
-import Constants (tileDimensions, canvasDimensions, font, black, Color(..), displayDimensions, charWidth, charHeight)
+import Constants (tileMapDimensions, canvasDimensions, font, black, Color(..), displayDimensions, charWidth, charHeight)
 import Graphics.Canvas as Canvas
 import Types (Sprite (..))
 
@@ -20,39 +20,40 @@ initCanvas { canvasId, spritesheetPath } = runMaybeT do
   canvas <- MaybeT $ liftEffect $ Canvas.getCanvasElementById canvasId
   liftEffect $ Canvas.setCanvasDimensions canvas canvasDimensions
   context <- liftEffect $ Canvas.getContext2D canvas
+  liftEffect $ setImageSmoothing context false
   liftEffect $ Canvas.setFont context font
   spritesheet <- lift $ makeAff \handler -> do
     Canvas.tryLoadImage spritesheetPath (handler <<< maybe (Left $ error "failed to load image") pure)
     mempty
   pure $ Context { context, spritesheet }
 
+foreign import setImageSmoothing :: Canvas.Context2D -> Boolean -> Effect Unit
+
 drawSprite :: Context -> Sprite -> Vector Number -> Effect Unit
 drawSprite (Context {context, spritesheet}) (Sprite { offsetX, offsetY }) (V { x, y }) =
   let
-    { width, height } = tileDimensions
-    sourceX = toNumber (offsetX * width)
-    sourceY = toNumber (offsetY * height)
+    { width, height, padding } = tileMapDimensions
+    { drawWidth, drawHeight} = displayDimensions
+    sourceX = toNumber (offsetX * (width + padding))
+    sourceY = toNumber (offsetY * (height + padding))
     w = toNumber width
     h = toNumber height
+    p = toNumber padding
   in
-  Canvas.drawImageFull context spritesheet sourceX sourceY w h x y w h
+  Canvas.drawImageFull context spritesheet sourceX sourceY w h x y (toNumber drawWidth) (toNumber drawHeight)
 
 drawSpriteToGrid :: Context -> Sprite -> Vector Int -> Effect Unit
-drawSpriteToGrid (Context {context, spritesheet}) (Sprite { offsetX, offsetY }) (V { x, y }) =
+drawSpriteToGrid ctx sprite (V { x, y }) =
   let
-    { width, height } = tileDimensions
-    sourceX = toNumber (offsetX * width)
-    sourceY = toNumber (offsetY * height)
-    canvasX = 180.0 + toNumber (x * width)
-    canvasY = toNumber (y * height)
-    w = toNumber width
-    h = toNumber height
+    { drawWidth, drawHeight } = displayDimensions
+    canvasX = toNumber (x * drawWidth)
+    canvasY = toNumber (y * drawHeight)
   in
   when
     ( 0 <= x && x < displayDimensions.width
       && 0 <= y && y < displayDimensions.height
-      )
-    (Canvas.drawImageFull context spritesheet sourceX sourceY w h canvasX canvasY w h)
+      ) $ drawSprite ctx sprite (V {x: canvasX, y: canvasY})
+    -- (Canvas.drawImageFull context spritesheet sourceX sourceY w h canvasX canvasY w h)
 
 getTextDimensions :: String -> { width :: Number, height :: Number }
 getTextDimensions t = { width: charWidth * (toNumber $ String.length t), height: charHeight }

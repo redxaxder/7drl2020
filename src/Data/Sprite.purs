@@ -6,7 +6,7 @@ spriteAt :: Int -> Int -> Sprite
 spriteAt offsetX offsetY = Sprite { offsetX, offsetY }
 
 player :: Sprite
-player = spriteAt 4 0
+player = spriteAt 26 7
 
-glitch :: Sprite
-glitch = spriteAt 4 3
+dirt :: Sprite
+dirt = spriteAt 2 0

@@ -11,17 +11,19 @@ charWidth = 10.0
 charHeight :: Number
 charHeight = 16.0
 
-tileDimensions :: { width ∷ Int, height ∷ Int }
-tileDimensions =
-  { width: 32
-  , height: 32
+tileMapDimensions :: { width ∷ Int, height ∷ Int, padding :: Int }
+tileMapDimensions =
+  { width: 16
+  , height: 16
+  , padding: 1
   }
 
-displayDimensions :: { width ∷ Int, height ∷ Int }
-displayDimensions = { width: 15, height: 15 }
+displayDimensions
+  :: { width ∷ Int, height ∷ Int, drawWidth :: Int, drawHeight :: Int }
+displayDimensions = { width: 10, height: 10, drawWidth: 64, drawHeight: 64 }
 
 canvasDimensions :: { width ∷ Number, height ∷ Number }
-canvasDimensions = { width: 640.0, height: 480.0 }
+canvasDimensions = { width: 640.0, height: 640.0 }
 
 newtype Color = Color String
 derive instance newtypeColor :: Newtype Color _

@@ -6,14 +6,17 @@ import Graphics.Render
   ( Context
   , clear
   , drawLinesToGrid
-  , drawTextToGrid
+  , drawSpriteToGrid
   )
 import Types
   ( GameState (..)
   , UIState (..)
   , Position
+  , getTerrainSprite
+  , Terrain
   )
 import Constants (white)
+import Data.Sprite as Sprite
 
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
@@ -28,9 +31,14 @@ drawStartScreen ctx =
     [ "Press any key to start" ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx (GameState {player}) =
+drawMainGame ctx (GameState {player, terrain}) = do
+  drawTerrain ctx terrain
   drawPlayer ctx player
 
+drawTerrain :: Context -> Terrain -> Effect Unit
+drawTerrain ctx = traverseWithIndex_ $ \pos terrainType ->
+    drawSpriteToGrid ctx (getTerrainSprite terrainType) pos
+
 drawPlayer :: Context -> Position -> Effect Unit
-drawPlayer ctx p = drawTextToGrid ctx white "@" p
+drawPlayer ctx p = drawSpriteToGrid ctx Sprite.player p
 

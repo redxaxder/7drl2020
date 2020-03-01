@@ -9,7 +9,7 @@ module Types
 
 import Data.Attribute (Attribute (..))
 import Data.Tile (Tile (..))
-import Data.Sprite (Sprite (..))
+import Data.Sprite (Sprite (..), spriteAt)
 import Data.Position (Position)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
@@ -24,6 +24,9 @@ newtype GameState = GameState
 
 type Terrain = Dim D8 D8 Array TerrainType
 data TerrainType = Dirt
+
+getTerrainSprite :: TerrainType -> Sprite
+getTerrainSprite Dirt = spriteAt 2 0
 
 type Key = String
 
