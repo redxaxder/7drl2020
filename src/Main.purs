@@ -12,16 +12,11 @@ import Graphics.Render (initCanvas)
 import Types
   ( GameState (..)
   , Action (..)
-  , Position
-  , Terrain
-  , TerrainType (..)
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
-import DimArray (Dim (..))
 import Direction (move)
-
-import Data.Array as Array
+import Data.Terrain(initTerrain)
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -45,9 +40,6 @@ init = GameState
   , terrain: initTerrain
   }
 
-initTerrain :: Terrain
-initTerrain = Dim $ Array.replicate 64 Dirt
-
 update :: GameState -> Action -> Maybe GameState
 update gs a = stepEnvironment <$> handleAction gs a
 
@@ -58,7 +50,4 @@ handleAction :: GameState -> Action -> Maybe GameState
 handleAction _ StartGame = Just init
 handleAction (GameState gs@{player}) (Move dir) =
   Just $ GameState $ gs{ player = move dir player }
-
-passable :: GameState -> Position -> Boolean
-passable gs pos = true
 

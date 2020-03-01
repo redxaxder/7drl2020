@@ -1,12 +1,12 @@
 
-game state structure
+X game state structure
 
-draw tiles
-  - player tile
-  - floor tiles
-  - wall tiles
+X draw tiles
+  X player tile
+  X floor tiles
+  X wall tiles
 
-draw border
+X draw border
 draw inventory (3 slots?)
 
 player stamina

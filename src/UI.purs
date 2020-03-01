@@ -2,8 +2,11 @@ module UI where
 
 import Framework.UI (UI (..))
 import Types as T
-import Types (UIState (..), Action (..), Key, GameState)
-import Direction (Direction (..))
+import Types (UIState (..), Action (..), Key, GameState (..))
+import Direction (Direction (..), move)
+import DimArray (index)
+import Extra.Prelude
+import Data.Terrain (blocksMovement)
 
 -- Javascript key codes here: https://keycode.info/
 
@@ -31,4 +34,10 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
-chooseSensibleAction gs dir = run (Move dir)
+chooseSensibleAction g@(GameState gs) dir = 
+  if canMove then run (Move dir) else runningGameUI g
+  where
+    targetTerrain = index gs.terrain $ move dir gs.player
+    canMove = case targetTerrain of
+      Nothing -> false
+      Just t -> not $ blocksMovement t

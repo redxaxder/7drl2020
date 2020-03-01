@@ -17,7 +17,6 @@ class Indexable (f :: Type -> Type) where
 instance indexableArray :: Indexable Array where
   ix = Array.index
 
--- linear index. y major. x minor
 index :: forall w h a f. Indexable f => Nat w => Nat h
   => Dim w h f a -> Vector Int -> Maybe a
 index (Dim array) = ix array <<< toLinearIndex (Proxy :: Proxy w)
