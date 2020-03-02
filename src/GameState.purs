@@ -20,8 +20,7 @@ newtype GameState = GameState
   }
 
 newtype EntityConfig = EntityConfig
-  {
-    position :: Maybe Position
+  { position :: Maybe Position
   , entityType :: EntityType 
   }
 
@@ -39,12 +38,11 @@ newGameState rng =
      , rng
      }
 
-createEntity :: EntityConfig -> GameState-> GameState
-createEntity (EntityConfig ec) (GameState gs) = 
+createEntity :: EntityConfig -> GameState -> GameState
+createEntity (EntityConfig ec) (GameState gs) =
   let eid = gs.nextEntityId
-   in GameState gs 
-      {
-        nextEntityId = increment eid
+   in GameState gs
+      { nextEntityId = increment eid
       , positions = case ec.position of
                       Nothing -> gs.positions
                       Just p -> Bimap.insert eid p gs.positions
@@ -64,6 +62,14 @@ getEntityType :: EntityId -> GameState -> EntityType
 getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
 
 placeEntity :: EntityId -> Position -> GameState -> GameState
-placeEntity eid pos (GameState gs) = 
+placeEntity eid pos (GameState gs) =
   let newp = Bimap.insert eid pos gs.positions
    in GameState $ gs { positions = newp }
+
+{-
+hoistRandom :: Random GameState -> GameState -> GameState
+hoistRandom r (GameState {rng}) =
+  let {GameState result, nextGen} = runRandom r rng
+   in GameState $ result {rng = nextGen}
+
+      -}

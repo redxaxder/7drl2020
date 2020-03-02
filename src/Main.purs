@@ -18,7 +18,10 @@ import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
 import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity)
-import Random (newGen)
+import Random (newGen, runRandom, element)
+
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NonEmptyArray
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -43,12 +46,25 @@ update gs a = stepEnvironment <$> handleAction gs a
 stepEnvironment :: GameState -> GameState
 stepEnvironment gs = gs
 
+spawnOptions :: NonEmptyArray EntityType
+spawnOptions = NonEmptyArray.cons' Grass
+  [ Tree ]
+
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) =
   let newPos = move dir $ playerPosition gs
-      ec = EntityConfig 
-            { position: Just $ playerPosition gs
-            , entityType: Grass
-            }
-   in Just $ createEntity ec $ placeEntity (getPlayer gs) newPos gs
+      actions :: Array (GameState -> GameState)
+      actions = [ placeEntity (getPlayer gs) newPos
+                , \(GameState g@{rng}) ->
+                    let {result, nextGen} = runRandom (element spawnOptions) rng
+                        ec = EntityConfig
+                          { position: Just $ playerPosition gs
+                          , entityType: result
+                          }
+                        (GameState gs') = createEntity ec gs
+                     in GameState $ gs'{rng = nextGen}
+                ]
+  in Just $
+     let (Endo f) = foldMap Endo actions
+      in f gs

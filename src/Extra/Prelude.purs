@@ -6,6 +6,7 @@ module Extra.Prelude
   , module Data.Map
   , module Data.Maybe
   , module Data.Newtype
+  , module Data.Monoid.Endo
   , module Data.Traversable
   , module Data.TraversableWithIndex
   , module Data.Tuple
@@ -41,13 +42,14 @@ import Control.Monad.Rec.Class (Step (..), tailRec)
 import Data.Array (groupBy, sortBy, zip, findIndex, deleteAt, index)
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Either (Either(..))
-import Data.Foldable 
+import Data.Foldable
  ( class Foldable
  , all
  , null
  , length
  , elem
  , find
+ , fold
  , foldr
  , foldl
  , sum
@@ -59,6 +61,7 @@ import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_, foldMapWithInd
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust)
+import Data.Monoid.Endo (Endo (..))
 import Data.Newtype (class Newtype, unwrap, un)
 import Data.Semigroup.Foldable (class Foldable1, foldMap1)
 import Data.Set (Set)
