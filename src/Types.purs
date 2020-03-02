@@ -17,7 +17,7 @@ import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 import GameState (GameState (..), playerPosition, getEntityType)
-import Entity (EntityType(..))
+import Entity (EntityType(..), EntityId)
 
 
 type Key = String
@@ -25,6 +25,7 @@ type Key = String
 data Action =
   StartGame
   | Move Direction
+  | Attack EntityId
 
 type UI = UIF.UI GameState Action UIState Key
 type UIAwaitingInput = UIF.UIAwaitingInput GameState Action UIState Key

@@ -18,7 +18,7 @@ import Types
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoist, addTransformation, Transformation (..))
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoist, addTransformation, Transformation (..), doAttack)
 import Random (newGen, element)
 
 import Data.Array.NonEmpty (NonEmptyArray)
@@ -69,6 +69,7 @@ handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) = flip evalState gs $ do
   let oldPos = playerPosition gs
       newPos = move dir oldPos
-  hoist $ placeEntity (getPlayer gs) newPos
+  placeEntity (getPlayer gs) newPos
   spawnPlant oldPos
   Just <$> get
+handleAction gs (Attack target) = Just $ doAttack target gs

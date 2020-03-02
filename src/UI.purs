@@ -7,6 +7,8 @@ import Direction (Direction (..), move)
 import DimArray (index)
 import Extra.Prelude
 import Data.Terrain (blocksMovement)
+import GameState (getEntityInfo)
+import Data.Bimap as Bimap
 
 -- Javascript key codes here: https://keycode.info/
 
@@ -34,10 +36,20 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
-chooseSensibleAction g@(GameState gs) dir =
-  if canMove then run (Move dir) else runningGameUI g
+chooseSensibleAction g@(GameState gs) dir = 
+  case terrainBlocking of
+       true -> runningGameUI g
+       false ->
+         case Bimap.lookupR target gs.positions of
+              Nothing -> run $ Move dir
+              Just id ->
+                case getEntityInfo g id of
+                     { blocking: false } -> run $ Move dir
+                     { blocking: true, attackable: false } -> runningGameUI g
+                     { blocking: true, attackable: true } -> run (Attack id)
   where
-    targetTerrain = index gs.terrain $ move dir (playerPosition g)
-    canMove = case targetTerrain of
-      Nothing -> false
-      Just t -> not $ blocksMovement t
+    target = move dir (playerPosition g)
+    targetTerrain = index gs.terrain target
+    terrainBlocking = case targetTerrain of
+      Nothing -> true
+      Just t -> blocksMovement t
