@@ -13,12 +13,13 @@ import Types
   ( GameState (..)
   , Action (..)
   , EntityType (..)
+  , Position
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity)
-import Random (newGen, runRandom, element)
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoistRandom, addTransformation, Transformation (..))
+import Random (newGen, element)
 
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
@@ -44,27 +45,30 @@ update :: GameState -> Action -> Maybe GameState
 update gs a = stepEnvironment <$> handleAction gs a
 
 stepEnvironment :: GameState -> GameState
-stepEnvironment gs = gs
+stepEnvironment = tickTransformations
 
-spawnOptions :: NonEmptyArray EntityType
-spawnOptions = NonEmptyArray.cons' Grass
-  [ Tree ]
+spawnOptions :: NonEmptyArray (Tuple EntityType Int)
+spawnOptions = NonEmptyArray.cons'
+  ( Tuple Grass 1 )
+  [ Tuple Tree 6
+  ]
+
+spawnPlant :: Position -> State GameState Unit
+spawnPlant p =  do
+  (Tuple into duration) <- hoistRandom $ element spawnOptions
+  id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
+  modify_ $ addTransformation $ Transformation
+    { id
+    , into
+    , progress: -1
+    , duration
+    }
 
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
-handleAction gs (Move dir) =
-  let newPos = move dir $ playerPosition gs
-      actions :: Array (GameState -> GameState)
-      actions = [ placeEntity (getPlayer gs) newPos
-                , \(GameState g@{rng}) ->
-                    let {result, nextGen} = runRandom (element spawnOptions) rng
-                        ec = EntityConfig
-                          { position: Just $ playerPosition gs
-                          , entityType: result
-                          }
-                        (GameState gs') = createEntity ec gs
-                     in GameState $ gs'{rng = nextGen}
-                ]
-  in Just $
-     let (Endo f) = foldMap Endo actions
-      in f gs
+handleAction gs (Move dir) = flip evalState gs $ do
+  let oldPos = playerPosition gs
+      newPos = move dir oldPos
+  modify_ $ placeEntity (getPlayer gs) newPos
+  spawnPlant oldPos
+  Just <$> get

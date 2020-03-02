@@ -13,8 +13,8 @@ terrains implemented (ad-hoc)
   X rocks
 
 plant system
-  - spawn
-  - grow
+  X spawn
+  X grow
   - growth display
   - change state in response to player action
   - state-based effects to plants (e.g. rootless trees)

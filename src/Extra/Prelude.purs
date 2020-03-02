@@ -14,6 +14,7 @@ module Extra.Prelude
   , module Debug.Trace
   , module Effect
   , module Extra.Math
+  , module Control.Monad.State
 
   , class Group
   , invert
@@ -37,7 +38,7 @@ module Extra.Prelude
 
 import Prelude
 
-import Control.Monad.State (State, get, put)
+import Control.Monad.State (State, get, put, modify_, modify, runState, execState, evalState)
 import Control.Monad.Rec.Class (Step (..), tailRec)
 import Data.Array (groupBy, sortBy, zip, findIndex, deleteAt, index)
 import Data.Array.NonEmpty (NonEmptyArray)

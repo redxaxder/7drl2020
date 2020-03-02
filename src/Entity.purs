@@ -9,7 +9,7 @@ newtype EntityId = EntityId Int
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Grass | Player | Tree
+data EntityType = Grass | Player | Tree | Seed
 
 derive instance eqEntityType :: Eq EntityType
 derive instance ordEntityType :: Ord EntityType
@@ -32,6 +32,7 @@ entityTable = Map.fromFoldable
   [ t Player (spriteAt 26 7)
   , t Grass  (spriteAt 5 0)
   , t Tree   (spriteAt 0 1)
+  , t Seed   (spriteAt 1 0)
   ]
 
 increment :: EntityId -> EntityId
