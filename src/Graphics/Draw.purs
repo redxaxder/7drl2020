@@ -7,6 +7,7 @@ import Graphics.Render
   , clear
   , drawLinesToGrid
   , drawSpriteToGrid
+  , drawDotsToGrid
   )
 import Types
   ( GameState (..)
@@ -18,6 +19,7 @@ import Types
 import Constants (white)
 import Entity (lookupEntity)
 import Data.Bimap as Bimap
+import GameState (Transformation(..), getEntityPosition)
 
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
@@ -35,6 +37,7 @@ drawMainGame :: Context -> GameState -> Effect Unit
 drawMainGame ctx gs@(GameState {player, terrain}) = do
   drawTerrain ctx terrain
   drawEntities ctx gs
+  drawGrowth ctx gs
 
 drawTerrain :: Context -> Terrain -> Effect Unit
 drawTerrain ctx = traverseWithIndex_ $ \pos terrainType ->
@@ -48,5 +51,16 @@ drawEntities ctx g@(GameState gs) =
     let et = getEntityType entityId g
         { sprite } = lookupEntity et
      in drawSpriteToGrid ctx sprite pos
+
+drawGrowth :: Context -> GameState -> Effect Unit
+drawGrowth ctx g@(GameState gs) = 
+  traverseWithIndex_ f gs.transformations
+  where 
+  f i t@(Transformation trans) =
+    let pos = getEntityPosition trans.id g
+        dots = trans.duration - trans.progress
+     in case pos of
+       Nothing -> pure unit
+       Just p -> drawDotsToGrid ctx dots trans.duration p
    
 

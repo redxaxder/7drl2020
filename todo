@@ -15,7 +15,7 @@ terrains implemented (ad-hoc)
 plant system
   X spawn
   X grow
-  - growth display
+  X growth display
   - change state in response to player action (chopping trees)
   - state-based effects to plants (e.g. rootless trees)
 

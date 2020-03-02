@@ -8,6 +8,7 @@ import Data.String.CodePoints as String
 import Effect.Aff (Aff, makeAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (error)
+import Data.Array as Array
 
 import Constants (tileMapDimensions, canvasDimensions, font, black, Color(..), displayDimensions, charWidth, charHeight)
 import Graphics.Canvas as Canvas
@@ -54,6 +55,22 @@ drawSpriteToGrid ctx sprite (V { x, y }) =
       && 0 <= y && y < displayDimensions.height
       ) $ drawSprite ctx sprite (V {x: canvasX, y: canvasY})
     -- (Canvas.drawImageFull context spritesheet sourceX sourceY w h canvasX canvasY w h)
+
+drawDotsToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
+drawDotsToGrid (Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
+  let
+    sourceX = toNumber 517
+    sourceY = toNumber 504
+    size = 2
+    { drawWidth, drawHeight } = displayDimensions
+    baseX = x * drawWidth
+    baseY = toNumber $ y * drawHeight
+    width = drawWidth / totalDots - totalDots
+    height = toNumber $ drawHeight / 8
+    f i = Canvas.drawImageFull context spritesheet sourceX sourceY (toNumber size) (toNumber size) (finalX i) baseY (toNumber width) height
+    finalX i = toNumber $ baseX + (i - 1) * size * width
+   in
+    traverse_ f (Array.range 1 ndots)
 
 getTextDimensions :: String -> { width :: Number, height :: Number }
 getTextDimensions t = { width: charWidth * (toNumber $ String.length t), height: charHeight }
