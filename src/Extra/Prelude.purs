@@ -3,6 +3,7 @@ module Extra.Prelude
   , module Data.Either
   , module Data.Foldable
   , module Data.FoldableWithIndex
+  , module Data.Identity
   , module Data.Map
   , module Data.Maybe
   , module Data.Newtype
@@ -38,7 +39,7 @@ module Extra.Prelude
 
 import Prelude
 
-import Control.Monad.State (State, get, put, modify_, modify, runState, execState, evalState)
+import Control.Monad.State (State, get, put, modify_, modify, runState, execState, evalState, StateT)
 import Control.Monad.Rec.Class (Step (..), tailRec)
 import Data.Array (groupBy, sortBy, zip, findIndex, deleteAt, index)
 import Data.Array.NonEmpty (NonEmptyArray)
@@ -59,6 +60,7 @@ import Data.Foldable
  , intercalate
  )
 import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_, foldMapWithIndex, class FoldableWithIndex, foldrWithIndex, foldlWithIndex)
+import Data.Identity (Identity (..))
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust)

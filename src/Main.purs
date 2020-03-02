@@ -18,7 +18,7 @@ import Types
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoistRandom, addTransformation, Transformation (..))
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoist, addTransformation, Transformation (..))
 import Random (newGen, element)
 
 import Data.Array.NonEmpty (NonEmptyArray)
@@ -55,9 +55,9 @@ spawnOptions = NonEmptyArray.cons'
 
 spawnPlant :: Position -> State GameState Unit
 spawnPlant p =  do
-  (Tuple into duration) <- hoistRandom $ element spawnOptions
+  (Tuple into duration) <- hoist $ element spawnOptions
   id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
-  modify_ $ addTransformation $ Transformation
+  hoist $ addTransformation $ Transformation
     { id
     , into
     , progress: -1
@@ -69,6 +69,6 @@ handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) = flip evalState gs $ do
   let oldPos = playerPosition gs
       newPos = move dir oldPos
-  modify_ $ placeEntity (getPlayer gs) newPos
+  hoist $ placeEntity (getPlayer gs) newPos
   spawnPlant oldPos
   Just <$> get

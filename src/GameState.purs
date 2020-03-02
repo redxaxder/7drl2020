@@ -7,9 +7,17 @@ import Data.Array as Array
 import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
-import Data.Terrain (Terrain, initTerrain)
+import Data.Terrain (Terrain, initTerrain, TerrainType)
 import Entity (EntityType (..), EntityId (..), increment)
 import Random (Gen, Random, runRandom)
+import DimArray (Dim)
+
+import Data.Lens.Zoom (zoom)
+import Data.Lens.Record (prop)
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Symbol (SProxy (..))
+import Data.Typelevel.Num.Reps (D8)
+
 
 newtype GameState = GameState
   { player :: EntityId
@@ -21,6 +29,8 @@ newtype GameState = GameState
   , transformations :: Array Transformation
   }
 
+derive instance newtypeGameState :: Newtype GameState _
+
 newtype Transformation = Transformation
   { id :: EntityId
   , into :: EntityType
@@ -28,9 +38,8 @@ newtype Transformation = Transformation
   , duration :: Int
   }
 
-addTransformation :: Transformation -> GameState -> GameState
-addTransformation t (GameState gs) = GameState $
-  gs { transformations = Array.cons t gs.transformations }
+addTransformation :: Transformation -> State (Array Transformation) Unit
+addTransformation t = modify_ $ Array.cons t
 
 transform :: EntityId -> EntityType -> GameState -> GameState
 transform id into (GameState gs) =
@@ -68,7 +77,7 @@ newGameState rng =
 
 createEntity :: EntityConfig -> State GameState EntityId
 createEntity (EntityConfig ec) = do
-  GameState {nextEntityId} <- get
+  GameState { nextEntityId } <- get
   modify_ $ \(GameState gs) -> GameState gs
       { nextEntityId = increment nextEntityId
       , positions = case ec.position of
@@ -90,15 +99,27 @@ playerPosition gs = unsafeFromJust $ getEntityPosition (getPlayer gs) gs
 getEntityType :: EntityId -> GameState -> EntityType
 getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
 
-placeEntity :: EntityId -> Position -> GameState -> GameState
-placeEntity eid pos (GameState gs) =
-  let newp = Bimap.insert eid pos gs.positions
-   in GameState $ gs { positions = newp }
+placeEntity :: EntityId -> Position -> State (Bimap EntityId Position) Unit
+placeEntity eid pos = modify_ $ Bimap.insert eid pos
 
-hoistRandom :: forall a. Random a -> State GameState a
-hoistRandom r = do
-  GameState {rng} <- get
-  let {result, nextGen} = runRandom r rng
-  modify_ $ \(GameState gs) -> GameState $ gs {rng = nextGen}
-  pure result
+class Hoist m where
+  hoist :: forall a. m a -> State GameState a
 
+instance hoistRandom :: Hoist Random where
+  hoist r =  do
+    GameState {rng} <- get
+    let {result, nextGen} = runRandom r rng
+    modify_ $ \(GameState gs) -> GameState $ gs {rng = nextGen}
+    pure result
+
+instance hoistTerrain :: Hoist (StateT (Dim D8 D8 Array TerrainType) Identity) where
+  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "terrain")
+
+instance hoistPositions :: Hoist (StateT (Bimap EntityId (Vector Int)) Identity) where
+  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "positions")
+
+instance hoistEntities :: Hoist (StateT (Map EntityId EntityType) Identity) where
+  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "entities")
+
+instance hoistTransformations :: Hoist (StateT (Array Transformation) Identity) where
+  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "transformations")
