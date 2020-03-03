@@ -10,14 +10,14 @@ module Types
   where
 
 
-import Data.Attribute (Attribute (..))
+import Data.Attribute (Attribute (..), blocking, attackable, root, plant)
 import Data.Position (Position)
 import Data.Sprite (Sprite (..), spriteAt)
 import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
 import GameState (GameState (..), playerPosition, getEntityType)
-import Entity (EntityType(..), EntityId)
+import Entity (EntityType(..), EntityId, hasAttribute)
 
 
 type Key = String

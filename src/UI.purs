@@ -2,13 +2,14 @@ module UI where
 
 import Framework.UI (UI (..))
 import Types as T
-import Types (UIState (..), Action (..), Key, GameState (..), playerPosition)
+import Types (UIState (..), Action (..), Key, GameState (..), playerPosition, hasAttribute)
 import Direction (Direction (..), move)
 import DimArray (index)
 import Extra.Prelude
 import Data.Terrain (blocksMovement)
-import GameState (getEntityInfo)
+import GameState (getEntityType)
 import Data.Bimap as Bimap
+import Data.Attribute as A
 
 -- Javascript key codes here: https://keycode.info/
 
@@ -43,10 +44,13 @@ chooseSensibleAction g@(GameState gs) dir =
          case Bimap.lookupR target gs.positions of
               Nothing -> run $ Move dir
               Just id ->
-                case getEntityInfo g id of
-                     { blocking: false } -> run $ Move dir
-                     { blocking: true, attackable: false } -> runningGameUI g
-                     { blocking: true, attackable: true } -> run (Attack id)
+                let et = getEntityType id g
+                    blocking = hasAttribute A.blocking et
+                    attackable = hasAttribute A.attackable et
+                 in case { blocking, attackable } of
+                    { attackable: true } -> run (Attack id)
+                    { blocking: true } -> runningGameUI g
+                    { blocking: false } -> run $ Move dir
   where
     target = move dir (playerPosition g)
     targetTerrain = index gs.terrain target

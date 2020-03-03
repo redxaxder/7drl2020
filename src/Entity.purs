@@ -1,40 +1,75 @@
 module Entity where
 
 import Extra.Prelude
+
 import Data.Sprite (Sprite, spriteAt)
 import Data.Map as Map
+import Data.Set as Set
+import Data.Attribute
+  ( Attribute
+  , attrName
+  , sprite
+  , prjSprite
+  , health
+  , prjHealth
+  , blocking
+  , attackable
+  , rooting
+  , root
+  , plant
+  )
+
+import Extra.Prelude
 
 newtype EntityId = EntityId Int
 
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Grass | Player | Tree | Seed
+data EntityType = Grass | Player | Tree | Seed | Roots
+
+data SpawnEffect = MkRoots
+data Need = NeedRoots
 
 derive instance eqEntityType :: Eq EntityType
 derive instance ordEntityType :: Ord EntityType
 
 type EntityRow =
-  { sprite :: Sprite
-  , blocking :: Boolean
-  , attackable :: Boolean
-  , hp :: Maybe Int
+  { entityType :: EntityType
+  , attributes :: Set Attribute
   }
 
 lookupEntity :: EntityType -> EntityRow
 lookupEntity et = unsafeFromJust $ Map.lookup et entityTable
 
-t :: EntityType -> Sprite -> Boolean -> Boolean -> Maybe Int -> Tuple EntityType EntityRow
-t et sprite blocking attackable hp = Tuple et { sprite, blocking, attackable, hp }
+t :: EntityType
+  -> Array Attribute
+  -> Tuple EntityType EntityRow
+t entityType attrs =
+  Tuple entityType { entityType, attributes: Set.fromFoldable attrs }
+
+spriteAttr :: Int -> Int -> Attribute
+spriteAttr a b = sprite (spriteAt a b)
 
 entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
-  --  Type    Sprite         Blocking Attackable Hp
-  [ t Player (spriteAt 26 7) true     false      Nothing
-  , t Grass  (spriteAt 5 0)  false    false      Nothing
-  , t Tree   (spriteAt 0 1)  true     true       (Just 3)
-  , t Seed   (spriteAt 1 0)  false    false      Nothing
+  [ t Player [ spriteAttr 26 7 ]
+  , t Seed   [ spriteAttr 1 0 ]
+  , t Grass  [ spriteAttr 5 0, plant ]
+  , t Tree   [ spriteAttr 0 1, health 3, plant, rooting, blocking, attackable]
+  , t Roots  [ spriteAttr 16 1, root ]
   ]
 
 increment :: EntityId -> EntityId
 increment (EntityId eid) = EntityId (eid + 1)
+
+hasAttribute :: Attribute -> EntityType -> Boolean
+hasAttribute a et =  Set.member a (lookupEntity et).attributes
+
+healthAttribute :: EntityType -> Maybe Int
+healthAttribute et = prjHealth =<< find (\x -> attrName x == "health")
+  (lookupEntity et).attributes
+
+spriteAttribute :: EntityType -> Maybe Sprite
+spriteAttribute et = prjSprite =<< find (\x -> attrName x == "sprite")
+  (lookupEntity et).attributes

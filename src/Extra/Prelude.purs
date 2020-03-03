@@ -8,6 +8,7 @@ module Extra.Prelude
   , module Data.Maybe
   , module Data.Newtype
   , module Data.Monoid.Endo
+  , module Data.Set
   , module Data.Traversable
   , module Data.TraversableWithIndex
   , module Data.Tuple

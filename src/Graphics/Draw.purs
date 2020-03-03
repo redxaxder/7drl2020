@@ -17,7 +17,7 @@ import Types
   , getEntityType
   )
 import Constants (white)
-import Entity (lookupEntity)
+import Entity (spriteAttribute)
 import Data.Bimap as Bimap
 import GameState (Transformation(..), getEntityPosition)
 
@@ -49,8 +49,9 @@ drawEntities ctx g@(GameState gs) =
   where
   f entityId pos =
     let et = getEntityType entityId g
-        { sprite } = lookupEntity et
-     in drawSpriteToGrid ctx sprite pos
+     in case spriteAttribute et of
+        Just sprite -> drawSpriteToGrid ctx sprite pos
+        Nothing -> pure unit
 
 drawGrowth :: Context -> GameState -> Effect Unit
 drawGrowth ctx g@(GameState gs) = 

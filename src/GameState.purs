@@ -8,7 +8,7 @@ import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType)
-import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow)
+import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow, healthAttribute)
 import Random (Gen, Random, runRandom)
 import DimArray (Dim)
 
@@ -30,9 +30,7 @@ newtype GameState = GameState
   , hp :: Map EntityId Int
   }
 
-
 derive instance newtypeGameState :: Newtype GameState _
-
 
 newtype Transformation = Transformation
   { id :: EntityId
@@ -87,7 +85,7 @@ newGameState rng =
 createEntity :: EntityConfig -> State GameState EntityId
 createEntity (EntityConfig ec) = do
   GameState { nextEntityId } <- get
-  let { hp } = lookupEntity ec.entityType
+  let hp = healthAttribute ec.entityType
   modify_ $ \(GameState gs) -> GameState gs
       { nextEntityId = increment nextEntityId
       , positions = case ec.position of
