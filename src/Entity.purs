@@ -14,25 +14,26 @@ data EntityType = Grass | Player | Tree | Seed
 derive instance eqEntityType :: Eq EntityType
 derive instance ordEntityType :: Ord EntityType
 
-entitySprite :: EntityType -> Sprite
-entitySprite et = (unsafeFromJust $ Map.lookup et entityTable).sprite
-
 type EntityRow =
   { sprite :: Sprite
+  , blocking :: Boolean
+  , attackable :: Boolean
+  , hp :: Maybe Int
   }
 
 lookupEntity :: EntityType -> EntityRow
 lookupEntity et = unsafeFromJust $ Map.lookup et entityTable
 
-t :: EntityType -> Sprite -> Tuple EntityType EntityRow
-t et sprite = Tuple et { sprite }
+t :: EntityType -> Sprite -> Boolean -> Boolean -> Maybe Int -> Tuple EntityType EntityRow
+t et sprite blocking attackable hp = Tuple et { sprite, blocking, attackable, hp }
 
 entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
-  [ t Player (spriteAt 26 7)
-  , t Grass  (spriteAt 5 0)
-  , t Tree   (spriteAt 0 1)
-  , t Seed   (spriteAt 1 0)
+  --  Type    Sprite         Blocking Attackable Hp
+  [ t Player (spriteAt 26 7) true     false      Nothing
+  , t Grass  (spriteAt 5 0)  false    false      Nothing
+  , t Tree   (spriteAt 0 1)  true     true       (Just 3)
+  , t Seed   (spriteAt 1 0)  false    false      Nothing
   ]
 
 increment :: EntityId -> EntityId

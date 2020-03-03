@@ -8,7 +8,7 @@ import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType)
-import Entity (EntityType (..), EntityId (..), increment)
+import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow)
 import Random (Gen, Random, runRandom)
 import DimArray (Dim)
 
@@ -22,14 +22,17 @@ import Data.Typelevel.Num.Reps (D8)
 newtype GameState = GameState
   { player :: EntityId
   , terrain :: Terrain
-  , positions :: Bimap EntityId Position
-  , entities :: Map EntityId EntityType
   , nextEntityId :: EntityId
   , rng :: Gen
+  , entities :: Map EntityId EntityType
   , transformations :: Array Transformation
+  , positions :: Bimap EntityId Position
+  , hp :: Map EntityId Int
   }
 
+
 derive instance newtypeGameState :: Newtype GameState _
+
 
 newtype Transformation = Transformation
   { id :: EntityId
@@ -42,8 +45,13 @@ addTransformation :: Transformation -> State (Array Transformation) Unit
 addTransformation t = modify_ $ Array.cons t
 
 transform :: EntityId -> EntityType -> GameState -> GameState
-transform id into (GameState gs) =
-  GameState $ gs { entities = Map.insert id into gs.entities }
+transform id entityType = execState $ do
+  GameState { positions } <- get
+  modify_ $ killEntity id
+  createEntity $ EntityConfig
+    { position: Bimap.lookup id positions
+    , entityType
+    }
 
 tickTransformations :: GameState -> GameState
 tickTransformations (GameState gs) =
@@ -73,19 +81,41 @@ newGameState rng =
      , nextEntityId: EntityId 1
      , rng
      , transformations: mempty
+     , hp: mempty
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
 createEntity (EntityConfig ec) = do
   GameState { nextEntityId } <- get
+  let { hp } = lookupEntity ec.entityType
   modify_ $ \(GameState gs) -> GameState gs
       { nextEntityId = increment nextEntityId
       , positions = case ec.position of
                       Nothing -> gs.positions
                       Just p -> Bimap.insert nextEntityId p gs.positions
       , entities = Map.insert nextEntityId ec.entityType gs.entities
+      , hp = case hp of
+                  Nothing -> gs.hp
+                  Just h -> Map.insert nextEntityId h gs.hp
       }
   pure nextEntityId
+
+doAttack :: EntityId -> GameState -> GameState
+doAttack id g@(GameState gs) =
+  let newHp = fromMaybe 0 (Map.lookup id gs.hp) - 1
+   in if newHp <= 0
+      then killEntity id g
+      else GameState gs { hp = Map.insert id newHp gs.hp }
+
+killEntity :: EntityId -> GameState -> GameState
+killEntity id (GameState gs) =
+  GameState $ gs
+    { positions = Bimap.delete id gs.positions
+    , entities = Map.delete id gs.entities
+    , hp = Map.delete id gs.hp
+    , transformations = Array.filter
+        (\(Transformation{id: x}) -> x /= id) gs.transformations
+    }
 
 getPlayer :: GameState -> EntityId
 getPlayer (GameState {player}) = player
@@ -96,11 +126,20 @@ getEntityPosition eid (GameState {positions}) = Bimap.lookup eid positions
 playerPosition :: GameState -> Position
 playerPosition gs = unsafeFromJust $ getEntityPosition (getPlayer gs) gs
 
+getEntityInfo :: GameState -> EntityId -> EntityRow
+getEntityInfo gs eid = lookupEntity $ getEntityType eid gs
+
 getEntityType :: EntityId -> GameState -> EntityType
 getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
 
-placeEntity :: EntityId -> Position -> State (Bimap EntityId Position) Unit
-placeEntity eid pos = modify_ $ Bimap.insert eid pos
+placeEntity :: EntityId -> Position -> State GameState Unit
+placeEntity eid pos = do
+  GameState { positions } <- get
+  let occupant = Bimap.lookupR pos positions
+  GameState gs <- case occupant of
+                       Nothing -> get
+                       Just o -> modify $ killEntity o
+  put $ GameState gs { positions = Bimap.insert eid pos gs.positions }
 
 class Hoist m where
   hoist :: forall a. m a -> State GameState a
@@ -123,3 +162,6 @@ instance hoistEntities :: Hoist (StateT (Map EntityId EntityType) Identity) wher
 
 instance hoistTransformations :: Hoist (StateT (Array Transformation) Identity) where
   hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "transformations")
+
+instance hoistHp :: Hoist (StateT (Map EntityId Int) Identity) where
+  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "hp")

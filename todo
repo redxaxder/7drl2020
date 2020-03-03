@@ -16,7 +16,7 @@ plant system
   X spawn
   X grow
   X growth display
-  - change state in response to player action (chopping trees)
+  X change state in response to player action (chopping trees)
   - state-based effects to plants (e.g. rootless trees)
 
 onboard plants to plant system
