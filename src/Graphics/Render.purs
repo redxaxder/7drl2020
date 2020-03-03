@@ -56,8 +56,8 @@ drawSpriteToGrid ctx sprite (V { x, y }) =
       ) $ drawSprite ctx sprite (V {x: canvasX, y: canvasY})
     -- (Canvas.drawImageFull context spritesheet sourceX sourceY w h canvasX canvasY w h)
 
-drawDotsToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
-drawDotsToGrid (Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
+drawGrowthToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
+drawGrowthToGrid (Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
   let
     sourceX = toNumber 517
     sourceY = toNumber 504
@@ -66,6 +66,22 @@ drawDotsToGrid (Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
     baseX = x * drawWidth
     baseY = toNumber $ y * drawHeight
     width = drawWidth / totalDots - totalDots
+    height = toNumber $ drawHeight / 8
+    f i = Canvas.drawImageFull context spritesheet sourceX sourceY (toNumber size) (toNumber size) (finalX i) baseY (toNumber width) height
+    finalX i = toNumber $ baseX + (i - 1) * size * width
+   in
+    traverse_ f (Array.range 1 ndots)
+
+drawDamageToGrid :: Context -> Int -> Vector Int -> Effect Unit
+drawDamageToGrid (Context {context, spritesheet}) ndots (V { x, y } ) = 
+  let
+    sourceX = toNumber 517
+    sourceY = toNumber 504
+    size = 2
+    { drawWidth, drawHeight } = displayDimensions
+    baseX = x * drawWidth
+    baseY = toNumber $ y * drawHeight + drawHeight * 7 / 8
+    width = drawWidth / 10
     height = toNumber $ drawHeight / 8
     f i = Canvas.drawImageFull context spritesheet sourceX sourceY (toNumber size) (toNumber size) (finalX i) baseY (toNumber width) height
     finalX i = toNumber $ baseX + (i - 1) * size * width

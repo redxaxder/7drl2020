@@ -7,7 +7,8 @@ import Graphics.Render
   , clear
   , drawLinesToGrid
   , drawSpriteToGrid
-  , drawDotsToGrid
+  , drawGrowthToGrid
+  , drawDamageToGrid
   )
 import Types
   ( GameState (..)
@@ -39,6 +40,7 @@ drawMainGame ctx gs@(GameState {player, terrain}) = do
   drawTerrain ctx terrain
   drawEntities ctx gs
   drawGrowth ctx gs
+  drawDamage ctx gs
 
 drawTerrain :: Context -> Terrain -> Effect Unit
 drawTerrain ctx = traverseWithIndex_ $ \pos terrainType ->
@@ -56,11 +58,21 @@ drawEntities ctx g@(GameState gs) =
 
 drawGrowth :: Context -> GameState -> Effect Unit
 drawGrowth ctx g@(GameState gs) = 
-  traverseWithIndex_ f gs.transformations
+  traverse_ f gs.transformations
   where 
-  f i t@(Transformation trans) =
+  f t@(Transformation trans) =
     let pos = getEntityPosition trans.id g
         dots = trans.duration - trans.progress
      in case pos of
        Nothing -> pure unit
-       Just p -> drawDotsToGrid ctx dots trans.duration p
+       Just p -> drawGrowthToGrid ctx dots trans.duration p
+
+drawDamage :: Context -> GameState -> Effect Unit
+drawDamage ctx g@(GameState gs) = 
+  traverseWithIndex_ f gs.hp
+  where 
+  f eid hp =
+    let pos = getEntityPosition eid g
+     in case pos of
+       Nothing -> pure unit
+       Just p -> drawDamageToGrid ctx hp p
