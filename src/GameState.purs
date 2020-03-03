@@ -7,17 +7,17 @@ import Data.Array as Array
 import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
-import Data.Terrain (Terrain, initTerrain, TerrainType)
-import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow, healthAttribute)
+import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
+import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow, healthAttribute, hasAttribute)
 import Random (Gen, Random, runRandom)
-import DimArray (Dim)
+import DimArray (Dim, index)
+import Direction (move, Direction (..))
+import Data.Attribute as A
 
 import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Symbol (SProxy (..))
 import Data.Typelevel.Num.Reps (D8)
-
 
 newtype GameState = GameState
   { player :: EntityId
@@ -96,7 +96,23 @@ createEntity (EntityConfig ec) = do
                   Nothing -> gs.hp
                   Just h -> Map.insert nextEntityId h gs.hp
       }
+  when (hasAttribute A.rooting ec.entityType) do
+     gs <- get
+     for_ ec.position \center ->
+       for_ (getAdjacentEmptySpaces center gs) \p ->
+         createEntity (EntityConfig { position: Just p, entityType: Roots })
   pure nextEntityId
+
+
+getAdjacentEmptySpaces :: Position -> GameState -> Array Position
+getAdjacentEmptySpaces pos (GameState { positions, terrain }) =
+  Array.filter isGood $ move <$> [U, D, L, R] <*> pure pos
+  where
+  isGood p = not (isJust $ Bimap.lookupR p positions) && isFreeTerrain p
+  isFreeTerrain p = case index terrain p of
+                         Nothing -> false
+                         Just t -> not (blocksMovement t)
+
 
 doAttack :: EntityId -> GameState -> GameState
 doAttack id g@(GameState gs) =
