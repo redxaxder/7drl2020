@@ -40,3 +40,13 @@ leftMap (Bimap l _) = l
 
 rightMap :: forall a b. Bimap a b -> Map b a
 rightMap (Bimap _ r) = r
+
+instance foldableBimap :: Foldable (Bimap a) where
+  foldr f x (Bimap l _) = foldr f x l
+  foldl f x (Bimap l _) = foldl f x l
+  foldMap f (Bimap l _) = foldMap f l
+
+instance foldableWithIndexBimap :: FoldableWithIndex a (Bimap a) where
+  foldrWithIndex f x (Bimap l _) = foldrWithIndex f x l
+  foldlWithIndex f x (Bimap l _) = foldlWithIndex f x l
+  foldMapWithIndex f (Bimap l _) = foldMapWithIndex f l

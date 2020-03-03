@@ -2,17 +2,15 @@ module Entity where
 
 import Extra.Prelude
 
-import Data.Sprite (Sprite, spriteAt)
+import Data.Sprite (spriteAt)
 import Data.Map as Map
 import Data.Set as Set
 import Data.Attribute
   ( Attribute
-  , AttributeType
-  , attrName
+  , class Attr
   , sprite
-  , prjSprite
+  , prjAttribute
   , health
-  , prjHealth
   , blocking
   , attackable
   , rooting
@@ -20,10 +18,9 @@ import Data.Attribute
   , plant
   , isAttribute
   , unsafePrjAttribute
+  , withAttribute
   )
 
-import Data.Symbol (SProxy (..), class IsSymbol)
-import Prim.Row (class Cons)
 import Data.Array as Array
 import Data.Array.NonEmpty as NArray
 
@@ -46,11 +43,8 @@ type EntityRow =
   }
 
 entitiesWithAttribute
-   :: forall sym a r1
-    . Cons sym a r1 AttributeType
-    => IsSymbol sym
-    => SProxy sym
-    -> NonEmptyArray (Tuple EntityRow a)
+   :: forall s a. Attr s a
+   => s -> NonEmptyArray (Tuple EntityRow a)
 entitiesWithAttribute s = unsafeFromJust
   $ NArray.fromArray
   $ Array.catMaybes
@@ -84,15 +78,15 @@ entityTable = Map.fromFoldable
 increment :: EntityId -> EntityId
 increment (EntityId eid) = EntityId (eid + 1)
 
-hasAttribute :: Attribute -> EntityType -> Boolean
-hasAttribute a et =  Set.member a (lookupEntity et).attributes
+hasFlag :: Attribute -> EntityType -> Boolean
+hasFlag a et = withAttribute a k
+  where
+  k :: forall s a. Attr s a => s -> a -> Boolean
+  k s _ = hasAttribute s et
 
-healthAttribute :: EntityType -> Maybe Int
-healthAttribute et = prjHealth =<< find
-  (isAttribute (SProxy :: SProxy "health"))
-  (lookupEntity et).attributes
+hasAttribute :: forall s a. Attr s a => s -> EntityType -> Boolean
+hasAttribute s et =  isJust $ getAttribute s et
 
-spriteAttribute :: EntityType -> Maybe Sprite
-spriteAttribute et = prjSprite =<< find
-  (isAttribute (SProxy :: SProxy "sprite"))
-  (lookupEntity et).attributes
+getAttribute :: forall s a. Attr s a => s -> EntityType -> Maybe a
+getAttribute s et = prjAttribute s =<< find
+  (isAttribute s) (lookupEntity et).attributes

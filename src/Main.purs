@@ -18,7 +18,7 @@ import Types
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoist, addTransformation, Transformation (..), doAttack)
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tick, hoist, addTransformation, Transformation (..), doAttack)
 import Random (newGen, element)
 import Entity (EntityRow, entitiesWithAttribute)
 
@@ -41,10 +41,7 @@ main = unsafePartial $ launchAff_ $ do
   pure unit
 
 update :: GameState -> Action -> Maybe GameState
-update gs a = stepEnvironment <$> handleAction gs a
-
-stepEnvironment :: GameState -> GameState
-stepEnvironment = tickTransformations
+update gs a = tick <$> handleAction gs a
 
 spawnOptions :: NonEmptyArray (Tuple EntityRow Int)
 spawnOptions = entitiesWithAttribute (SProxy :: SProxy "plant")

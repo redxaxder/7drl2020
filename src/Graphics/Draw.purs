@@ -17,9 +17,10 @@ import Types
   , getEntityType
   )
 import Constants (white)
-import Entity (spriteAttribute)
 import Data.Bimap as Bimap
+import Entity (getAttribute)
 import GameState (Transformation(..), getEntityPosition)
+import Data.Attributes as A
 
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
@@ -49,7 +50,7 @@ drawEntities ctx g@(GameState gs) =
   where
   f entityId pos =
     let et = getEntityType entityId g
-     in case spriteAttribute et of
+     in case getAttribute A.sprite et of
         Just sprite -> drawSpriteToGrid ctx sprite pos
         Nothing -> pure unit
 
@@ -63,5 +64,3 @@ drawGrowth ctx g@(GameState gs) =
      in case pos of
        Nothing -> pure unit
        Just p -> drawDotsToGrid ctx dots trans.duration p
-   
-

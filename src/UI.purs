@@ -9,7 +9,7 @@ import Extra.Prelude
 import Data.Terrain (blocksMovement)
 import GameState (getEntityType)
 import Data.Bimap as Bimap
-import Data.Attribute as A
+import Data.Attributes as A
 
 -- Javascript key codes here: https://keycode.info/
 

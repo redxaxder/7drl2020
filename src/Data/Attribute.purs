@@ -3,7 +3,6 @@ module Data.Attribute where
 import Extra.Prelude
 
 import Data.Variant (Variant, inj, prj, unvariant, Unvariant (..))
-import Data.Symbol (SProxy (..), reflectSymbol, class IsSymbol)
 import Data.Sprite (Sprite)
 import Prim.Row (class Cons)
 
@@ -17,28 +16,28 @@ type AttributeType =
   , health :: Int
   )
 
+
+class Attr s a | s -> a where
+  prjAttribute :: s -> Attribute -> Maybe a
+
+instance attrSym
+  :: (Cons sym a r1 AttributeType, IsSymbol sym)
+  => Attr (SProxy sym) a
+  where
+  prjAttribute s (Attribute x) = prj s x
+
 isAttribute
-  :: forall sym a r1
-   . Cons sym a r1 AttributeType
-  => IsSymbol sym
-  => SProxy sym -> Attribute -> Boolean
+  :: forall s a . Attr s a => s -> Attribute -> Boolean
 isAttribute s x = case prjAttribute s x of
   Nothing -> false
   Just _ -> true
 
-prjAttribute
-  :: forall sym a r1
-   . Cons sym a r1 AttributeType
-  => IsSymbol sym
-  => SProxy sym -> Attribute -> Maybe a
-prjAttribute s (Attribute x) = prj s x
-
 unsafePrjAttribute
-  :: forall sym a r1
-   . Cons sym a r1 AttributeType
-  => IsSymbol sym
-  => SProxy sym -> Attribute -> a
+  :: forall s a. Attr s a => s -> Attribute -> a
 unsafePrjAttribute s = unsafeFromJust <<< prjAttribute s
+
+withAttribute :: forall b. Attribute -> (forall s a. Attr s a => s -> a -> b) -> b
+withAttribute (Attribute x) k = let Unvariant f = unvariant x in f k
 
 newtype Attribute = Attribute (Variant AttributeType)
 
@@ -55,6 +54,7 @@ attrName (Attribute x) =
 -------------------------------------------------------------------------------
 -- Flags
 -------------------------------------------------------------------------------
+
 rooting :: Attribute
 rooting = Attribute $ inj (SProxy :: SProxy "rooting") unit
 

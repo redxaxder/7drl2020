@@ -16,12 +16,13 @@ plant system
   X spawn
   X grow
   X growth display
+  - damage display
   X change state in response to player action (chopping trees)
-  - state-based effects to plants (e.g. rootless trees)
+  X state-based effects to plants (e.g. rootless trees)
 
 onboard plants to plant system
-  - grass
-  - trees/roots
+  X grass
+  X trees/roots
 
 stamina system
   - stamina-based actions

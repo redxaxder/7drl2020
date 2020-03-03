@@ -19,7 +19,7 @@ module Random.Gen
 import Extra.Prelude
 
 import Effect.Random (randomInt)
-import Data.Array.NonEmpty (NonEmptyArray, index)
+import Data.Array.NonEmpty (index)
 import Partial.Unsafe (unsafePartial)
 
 import Random.Blob (Blob, Ints (..), Doubles(..), toInts, toDoubles, fromInts, perturb, merge)

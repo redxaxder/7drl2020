@@ -8,11 +8,13 @@ import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
-import Entity (EntityType (..), EntityId (..), increment, lookupEntity, EntityRow, healthAttribute, hasAttribute)
+import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag)
 import Random (Gen, Random, runRandom)
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
-import Data.Attribute as A
+import Data.Attributes as A
+import Data.Attribute as F
+import Data.Attribute (class Attr, Attribute)
 
 import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
@@ -51,15 +53,52 @@ transform id entityType = execState $ do
     , entityType
     }
 
+tick :: GameState -> GameState
+tick = tickTransformations <<< checkSurvival
+
+getEntitiesWithAttribute :: forall s a. Attr s a =>
+  s -> GameState -> Array { entityId :: EntityId, attr :: a }
+getEntitiesWithAttribute s (GameState {entities}) =
+  flip foldMapWithIndex entities \entityId entityType ->
+    case getAttribute s entityType of
+         Nothing -> mempty
+         Just attr -> [{entityId, attr}]
+
+neighbors :: Position -> GameState -> Array EntityId
+neighbors center (GameState {positions}) = Array.catMaybes $
+  (move <$> [U, D, L, R] <*> pure center) <#> \p ->
+    Bimap.lookupR p positions
+
+neighborRequirements :: Map Attribute (Array Attribute)
+neighborRequirements = Map.fromFoldable
+  [ Tuple F.root [F.rooting]
+  , Tuple F.rooting [F.root]
+  ]
+
+checkSurvival :: GameState -> GameState
+checkSurvival g@(GameState {positions}) =
+  let dying = flip foldMapWithIndex positions \entityId position ->
+              let et = getEntityType entityId g
+                  reqs = flip foldMapWithIndex neighborRequirements
+                    \is needs -> if hasFlag is et
+                                 then needs
+                                 else []
+                  adj = flip getEntityType g <$> neighbors position g
+                  satisfied req = any (hasFlag req) adj
+               in if all satisfied reqs
+                  then []
+                  else [entityId]
+   in flip execState g $ for_ dying \d -> modify_ $ killEntity d
+
 tickTransformations :: GameState -> GameState
 tickTransformations (GameState gs) =
-  let {yes, no} = Array.partition ready (tick <$> gs.transformations)
+  let {yes, no} = Array.partition ready (inc <$> gs.transformations)
       Endo f = foldMap Endo (apply <$> yes)
    in f $ GameState $ gs { transformations = no }
    where
    ready (Transformation { progress, duration }) = progress >= duration
    apply (Transformation { id, into }) = transform id into
-   tick (Transformation t) = Transformation $ t{ progress = t.progress + 1 }
+   inc (Transformation t) = Transformation $ t{ progress = t.progress + 1 }
 
 newtype EntityConfig = EntityConfig
   { position :: Maybe Position
@@ -85,7 +124,7 @@ newGameState rng =
 createEntity :: EntityConfig -> State GameState EntityId
 createEntity (EntityConfig ec) = do
   GameState { nextEntityId } <- get
-  let hp = healthAttribute ec.entityType
+  let hp = getAttribute (SProxy :: SProxy "health") ec.entityType
   modify_ $ \(GameState gs) -> GameState gs
       { nextEntityId = increment nextEntityId
       , positions = case ec.position of
@@ -140,8 +179,15 @@ getEntityPosition eid (GameState {positions}) = Bimap.lookup eid positions
 playerPosition :: GameState -> Position
 playerPosition gs = unsafeFromJust $ getEntityPosition (getPlayer gs) gs
 
-getEntityInfo :: GameState -> EntityId -> EntityRow
-getEntityInfo gs eid = lookupEntity $ getEntityType eid gs
+checkEntityAttribute
+  :: forall s a. Attr s a
+   => s -> EntityId -> GameState -> Boolean
+checkEntityAttribute s eid = isJust <<< getEntityAttribute s eid
+
+getEntityAttribute
+  :: forall s a. Attr s a
+   => s -> EntityId -> GameState -> Maybe a
+getEntityAttribute s eid = getAttribute s <<< getEntityType eid
 
 getEntityType :: EntityId -> GameState -> EntityType
 getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
