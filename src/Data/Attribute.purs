@@ -5,16 +5,40 @@ import Extra.Prelude
 import Data.Variant (Variant, inj, prj, unvariant, Unvariant (..))
 import Data.Symbol (SProxy (..), reflectSymbol, class IsSymbol)
 import Data.Sprite (Sprite)
+import Prim.Row (class Cons)
 
 type AttributeType =
   ( blocking :: Unit
   , attackable :: Unit
-  , plant :: Unit
+  , plant :: Int
   , rooting :: Unit
   , root :: Unit
   , sprite :: Sprite
   , health :: Int
   )
+
+isAttribute
+  :: forall sym a r1
+   . Cons sym a r1 AttributeType
+  => IsSymbol sym
+  => SProxy sym -> Attribute -> Boolean
+isAttribute s x = case prjAttribute s x of
+  Nothing -> false
+  Just _ -> true
+
+prjAttribute
+  :: forall sym a r1
+   . Cons sym a r1 AttributeType
+  => IsSymbol sym
+  => SProxy sym -> Attribute -> Maybe a
+prjAttribute s (Attribute x) = prj s x
+
+unsafePrjAttribute
+  :: forall sym a r1
+   . Cons sym a r1 AttributeType
+  => IsSymbol sym
+  => SProxy sym -> Attribute -> a
+unsafePrjAttribute s = unsafeFromJust <<< prjAttribute s
 
 newtype Attribute = Attribute (Variant AttributeType)
 
@@ -43,9 +67,6 @@ blocking = Attribute $ inj (SProxy :: SProxy "blocking") unit
 attackable :: Attribute
 attackable = Attribute $ inj (SProxy :: SProxy "attackable") unit
 
-plant :: Attribute
-plant = Attribute $ inj (SProxy :: SProxy "plant") unit
-
 -------------------------------------------------------------------------------
 -- Attributes with data
 -------------------------------------------------------------------------------
@@ -59,3 +80,8 @@ health :: Int -> Attribute
 health = Attribute <<< inj (SProxy :: SProxy "health")
 prjHealth :: Attribute -> Maybe Int
 prjHealth (Attribute a) = prj (SProxy :: SProxy "health") a
+
+plant :: Int -> Attribute
+plant = Attribute <<< inj (SProxy :: SProxy "plant")
+prjPlant :: Attribute -> Maybe Int
+prjPlant (Attribute a) = prj (SProxy :: SProxy "plant") a

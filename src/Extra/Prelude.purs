@@ -10,6 +10,7 @@ module Extra.Prelude
   , module Data.Monoid.Endo
   , module Data.Set
   , module Data.Traversable
+  , module Data.Array.NonEmpty
   , module Data.TraversableWithIndex
   , module Data.Tuple
   , module Data.Unfoldable
@@ -17,6 +18,7 @@ module Extra.Prelude
   , module Effect
   , module Extra.Math
   , module Control.Monad.State
+  , module Data.Symbol
 
   , class Group
   , invert
@@ -80,6 +82,7 @@ import Extra.Math (class Real, Vector(..), innerProduct, norm, toNumber, (**))
 import Partial (crash)
 import Partial.Unsafe (unsafePartial)
 import Prim.TypeError (class Warn, Text)
+import Data.Symbol (class IsSymbol, SProxy (..), reflectSymbol, reifySymbol)
 
 
 infixr 0 Tuple as |>

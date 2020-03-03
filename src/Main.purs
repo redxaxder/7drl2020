@@ -20,9 +20,8 @@ import UI (startScreen)
 import Direction (move)
 import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tickTransformations, hoist, addTransformation, Transformation (..), doAttack)
 import Random (newGen, element)
+import Entity (EntityRow, entitiesWithAttribute)
 
-import Data.Array.NonEmpty (NonEmptyArray)
-import Data.Array.NonEmpty as NonEmptyArray
 
 main :: Effect Unit
 main = unsafePartial $ launchAff_ $ do
@@ -47,19 +46,16 @@ update gs a = stepEnvironment <$> handleAction gs a
 stepEnvironment :: GameState -> GameState
 stepEnvironment = tickTransformations
 
-spawnOptions :: NonEmptyArray (Tuple EntityType Int)
-spawnOptions = NonEmptyArray.cons'
-  ( Tuple Grass 1 )
-  [ Tuple Tree 6
-  ]
+spawnOptions :: NonEmptyArray (Tuple EntityRow Int)
+spawnOptions = entitiesWithAttribute (SProxy :: SProxy "plant")
 
 spawnPlant :: Position -> State GameState Unit
 spawnPlant p =  do
-  (Tuple into duration) <- hoist $ element spawnOptions
+  (Tuple {entityType} duration) <- hoist $ element spawnOptions
   id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
   hoist $ addTransformation $ Transformation
     { id
-    , into
+    , into: entityType
     , progress: -1
     , duration
     }
