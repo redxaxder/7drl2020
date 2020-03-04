@@ -62,6 +62,9 @@ dotXLoc = toNumber 517
 dotYLoc :: Number
 dotYLoc = toNumber 504
 
+darkDotY :: Number
+darkDotY = toNumber 402
+
 dotXOffset :: Int -> Int -> Int -> Number
 dotXOffset i base width = toNumber $ base + (i - 1) * dotOrigSize * width
 
@@ -73,9 +76,15 @@ dotHeight = toNumber $ drawHeight / 8
 dotOrigSize :: Int
 dotOrigSize = 2
 
-drawDot :: Context -> Int -> Int -> Int -> Int -> Effect Unit
-drawDot (Context {context, spritesheet}) baseX baseY width i = 
-  Canvas.drawImageFull context spritesheet dotXLoc dotYLoc (toNumber dotOrigSize) (toNumber dotOrigSize) (dotXOffset i baseX width) (toNumber baseY) (toNumber width) dotHeight
+drawLightDot :: Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawLightDot = drawDot dotYLoc
+
+drawDarkDot :: Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawDarkDot = drawDot darkDotY
+
+drawDot :: Number -> Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawDot yLoc (Context {context, spritesheet}) baseX baseY width i = 
+  Canvas.drawImageFull context spritesheet dotXLoc yLoc (toNumber dotOrigSize) (toNumber dotOrigSize) (dotXOffset i baseX width) (toNumber baseY) (toNumber width) dotHeight
 
 drawGrowthToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
 drawGrowthToGrid ctx@(Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
@@ -84,8 +93,9 @@ drawGrowthToGrid ctx@(Context {context, spritesheet}) ndots totalDots (V { x, y 
     baseX = x * drawWidth
     baseY = y * drawHeight
     width = drawWidth / 16
-   in
-    traverse_ (drawDot ctx baseX baseY width) (Array.range 1 ndots)
+   in do
+    traverse_ (drawLightDot ctx baseX baseY width) (Array.range 1 ndots)
+    when (ndots < totalDots) $ traverse_ (drawDarkDot ctx baseX baseY width) (Array.range (ndots + 1) totalDots)
 
 drawDamageToGrid :: Context -> Int -> Vector Int -> Effect Unit
 drawDamageToGrid ctx@(Context {context, spritesheet}) ndots (V { x, y } ) = 
@@ -95,7 +105,7 @@ drawDamageToGrid ctx@(Context {context, spritesheet}) ndots (V { x, y } ) =
     baseY = y * drawHeight + drawHeight * 7 / 8
     width = drawWidth / 10
    in
-    traverse_ (drawDot ctx baseX baseY width) (Array.range 1 ndots)
+    traverse_ (drawDarkDot ctx baseX baseY width) (Array.range 1 ndots)
 
 getTextDimensions :: String -> { width :: Number, height :: Number }
 getTextDimensions t = { width: charWidth * (toNumber $ String.length t), height: charHeight }
