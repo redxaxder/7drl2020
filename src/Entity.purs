@@ -70,8 +70,8 @@ spriteAttr a b = sprite (spriteAt a b)
 entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
   [ t Player [ spriteAttr 26 7 ]
-  , t Seed   [ spriteAttr 1 0 ]
-  , t Grass  [ spriteAttr 5 0, plant 1 ]
+  , t Seed   [ spriteAttr 13 0 ]
+  , t Grass  [ spriteAttr 0 2, plant 1 ]
   , t Tree   [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable]
   , t Roots  [ spriteAttr 16 1, root, impedes 1 ]
   ]
