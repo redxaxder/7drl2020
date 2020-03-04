@@ -22,7 +22,7 @@ import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityCo
 import GameState as GS
 import Data.Attributes as A
 import Random (newGen, element)
-import Entity (EntityRow, entitiesWithAttribute)
+import Entity (entitiesWithAttribute)
 
 
 main :: Effect Unit
@@ -45,12 +45,9 @@ main = unsafePartial $ launchAff_ $ do
 update :: GameState -> Action -> Maybe GameState
 update gs a = tick <$> handleAction gs a
 
-spawnOptions :: NonEmptyArray (Tuple EntityRow Int)
-spawnOptions = entitiesWithAttribute (SProxy :: SProxy "plant")
-
 spawnPlant :: Position -> State GameState Unit
 spawnPlant p =  do
-  (Tuple {entityType} duration) <- hoist $ element spawnOptions
+  (Tuple {entityType} duration) <- hoist $ element (entitiesWithAttribute A.plant)
   id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
   hoist $ addTransformation $ Transformation
     { id

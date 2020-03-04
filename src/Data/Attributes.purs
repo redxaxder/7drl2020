@@ -26,3 +26,5 @@ plant = SProxy
 impedes :: SProxy "impedes"
 impedes = SProxy
 
+item :: SProxy "item"
+item = SProxy

@@ -16,6 +16,7 @@ type AttributeType =
   , sprite :: Sprite
   , health :: Int
   , impedes :: Int
+  , item :: Unit
   )
 
 
@@ -68,6 +69,9 @@ blocking = Attribute $ inj A.blocking unit
 
 attackable :: Attribute
 attackable = Attribute $ inj A.attackable unit
+
+item :: Attribute
+item = Attribute $ inj A.item unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data

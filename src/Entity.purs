@@ -20,6 +20,7 @@ import Data.Attribute
   , unsafePrjAttribute
   , withAttribute
   , impedes
+  , item
   )
 
 import Data.Array as Array
@@ -30,7 +31,7 @@ newtype EntityId = EntityId Int
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Grass | Player | Tree | Seed | Roots
+data EntityType = Grass | Player | Tree | Seed | Roots | Apple
 
 data SpawnEffect = MkRoots
 data Need = NeedRoots
@@ -74,6 +75,7 @@ entityTable = Map.fromFoldable
   , t Grass  [ spriteAttr 0 2, plant 1 ]
   , t Tree   [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable]
   , t Roots  [ spriteAttr 16 1, root, impedes 1 ]
+  , t Apple  [ spriteAttr 15 29, item ]
   ]
 
 increment :: EntityId -> EntityId

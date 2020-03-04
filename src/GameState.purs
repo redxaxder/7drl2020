@@ -8,8 +8,8 @@ import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
-import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag)
-import Random (Gen, Random, runRandom)
+import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
+import Random (Gen, Random, runRandom, intRange, element)
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
 import Data.Attributes as A
@@ -55,7 +55,7 @@ transform id entityType = execState $ do
     }
 
 tick :: GameState -> GameState
-tick = tickTransformations <<< checkSurvival
+tick = tickItem <<< tickTransformations <<< checkSurvival
 
 getEntitiesWithAttribute :: forall s a. Attr s a =>
   s -> GameState -> Array { entityId :: EntityId, attr :: a }
@@ -142,6 +142,38 @@ createEntity (EntityConfig ec) = do
        for_ (getAdjacentEmptySpaces center gs) \p ->
          createEntity (EntityConfig { position: Just p, entityType: Roots })
   pure nextEntityId
+
+tickItem :: GameState -> GameState
+tickItem gs =
+  let items = _.entityId <$> getEntitiesWithAttribute A.item gs
+      collectibles = Array.filter (isJust <<< flip getEntityPosition gs) items
+   in if Array.null collectibles
+      then execState spawnItem gs
+      else gs
+
+
+spawnItem :: State GameState Unit
+spawnItem = do
+  q <- toQuadrant <<< playerPosition <$> get
+  quadrantShift <- hoist $ intRange 1 3
+  x <- hoist $ intRange (-1) 1
+  y <- hoist $ intRange (-1) 1
+  let p = fromQuadrant (q + quadrantShift) + V {x,y}
+  (Tuple {entityType} _) <- hoist $ element $ entitiesWithAttribute A.item
+  void $ createEntity (EntityConfig { position: Just p, entityType })
+  where
+  toQuadrant :: Position -> Int
+  toQuadrant (V {x,y}) = case Tuple (x > 2) (y > 2) of
+    Tuple true true   -> 0
+    Tuple false true  -> 1
+    Tuple false false -> 2
+    Tuple true false  -> 3
+  fromQuadrant :: Int -> Position
+  fromQuadrant 0 = V { x: 4, y: 4 }
+  fromQuadrant 1 = V { x: 1, y: 4 }
+  fromQuadrant 2 = V { x: 1, y: 1 }
+  fromQuadrant 3 = V { x: 4, y: 1 }
+  fromQuadrant n = fromQuadrant (n `mod` 4)
 
 getAdjacentEmptySpaces :: Position -> GameState -> Array Position
 getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
