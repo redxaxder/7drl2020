@@ -19,6 +19,7 @@ import Data.Attribute
   , isAttribute
   , unsafePrjAttribute
   , withAttribute
+  , impedes
   )
 
 import Data.Array as Array
@@ -72,7 +73,7 @@ entityTable = Map.fromFoldable
   , t Seed   [ spriteAttr 1 0 ]
   , t Grass  [ spriteAttr 5 0, plant 1 ]
   , t Tree   [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable]
-  , t Roots  [ spriteAttr 16 1, root ]
+  , t Roots  [ spriteAttr 16 1, root, impedes 1 ]
   ]
 
 increment :: EntityId -> EntityId

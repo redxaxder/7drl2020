@@ -22,3 +22,7 @@ health = SProxy
 
 plant :: SProxy "plant"
 plant = SProxy
+
+impedes :: SProxy "impedes"
+impedes = SProxy
+

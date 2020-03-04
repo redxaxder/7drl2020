@@ -16,7 +16,7 @@ plant system
   X spawn
   X grow
   X growth display
-  - damage display
+  X damage display
   X change state in response to player action (chopping trees)
   X state-based effects to plants (e.g. rootless trees)
 
@@ -29,14 +29,12 @@ stamina system
   - plant interactions
   - report stamina (bar?)
   - die
+    - game over screen
 
 fruit! system
-  - spawn fruits when collected
-
-the "it's technically a game" milestone:
-  - game over screen
-  - spawn simple plants behind player
   - spawn fruits (that dont do anything)
   - collect fruits
+
+---- it's "technically a game"
 
 inventory system (3 slots?)

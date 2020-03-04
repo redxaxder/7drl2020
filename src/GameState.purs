@@ -23,6 +23,7 @@ import Data.Typelevel.Num.Reps (D8)
 
 newtype GameState = GameState
   { player :: EntityId
+  , stamina :: Int
   , terrain :: Terrain
   , nextEntityId :: EntityId
   , rng :: Gen
@@ -65,9 +66,8 @@ getEntitiesWithAttribute s (GameState {entities}) =
          Just attr -> [{entityId, attr}]
 
 neighbors :: Position -> GameState -> Array EntityId
-neighbors center (GameState {positions}) = Array.catMaybes $
-  (move <$> [U, D, L, R] <*> pure center) <#> \p ->
-    Bimap.lookupR p positions
+neighbors center gs = Array.catMaybes $
+  (move <$> [U, D, L, R] <*> pure center) <#> \p -> getOccupant p gs
 
 neighborRequirements :: Map Attribute (Array Attribute)
 neighborRequirements = Map.fromFoldable
@@ -110,6 +110,7 @@ newGameState rng =
   let playerId = EntityId 0
   in GameState
      { player: playerId
+     , stamina: 6
      , positions: Bimap.singleton playerId (V{x:5,y:5})
      , terrain: initTerrain
      , entities:  Map.fromFoldable
@@ -142,16 +143,14 @@ createEntity (EntityConfig ec) = do
          createEntity (EntityConfig { position: Just p, entityType: Roots })
   pure nextEntityId
 
-
 getAdjacentEmptySpaces :: Position -> GameState -> Array Position
-getAdjacentEmptySpaces pos (GameState { positions, terrain }) =
+getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
   Array.filter isGood $ move <$> [U, D, L, R] <*> pure pos
   where
-  isGood p = not (isJust $ Bimap.lookupR p positions) && isFreeTerrain p
+  isGood p = not (isJust $ getOccupant p g) && isFreeTerrain p
   isFreeTerrain p = case index terrain p of
                          Nothing -> false
                          Just t -> not (blocksMovement t)
-
 
 doAttack :: EntityId -> GameState -> GameState
 doAttack id g@(GameState gs) =
@@ -176,6 +175,9 @@ getPlayer (GameState {player}) = player
 getEntityPosition :: EntityId -> GameState -> Maybe Position
 getEntityPosition eid (GameState {positions}) = Bimap.lookup eid positions
 
+getOccupant :: Position -> GameState -> Maybe EntityId
+getOccupant p (GameState {positions}) = Bimap.lookupR p positions
+
 playerPosition :: GameState -> Position
 playerPosition gs = unsafeFromJust $ getEntityPosition (getPlayer gs) gs
 
@@ -195,7 +197,7 @@ getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entit
 placeEntity :: EntityId -> Position -> State GameState Unit
 placeEntity eid pos = do
   GameState { positions } <- get
-  let occupant = Bimap.lookupR pos positions
+  occupant <- getOccupant pos <$> get
   GameState gs <- case occupant of
                        Nothing -> get
                        Just o -> modify $ killEntity o

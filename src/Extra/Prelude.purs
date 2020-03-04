@@ -1,5 +1,6 @@
 module Extra.Prelude
   ( module Prelude
+  , module Control.MonadZero
   , module Data.Either
   , module Data.Foldable
   , module Data.FoldableWithIndex
@@ -67,6 +68,7 @@ import Data.Identity (Identity (..))
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust)
+import Control.MonadZero (guard)
 import Data.Monoid.Endo (Endo (..))
 import Data.Newtype (class Newtype, unwrap, un)
 import Data.Semigroup.Foldable (class Foldable1, foldMap1)

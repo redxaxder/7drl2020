@@ -5,6 +5,7 @@ import Extra.Prelude
 import Data.Variant (Variant, inj, prj, unvariant, Unvariant (..))
 import Data.Sprite (Sprite)
 import Prim.Row (class Cons)
+import Data.Attributes as A
 
 type AttributeType =
   ( blocking :: Unit
@@ -14,6 +15,7 @@ type AttributeType =
   , root :: Unit
   , sprite :: Sprite
   , health :: Int
+  , impedes :: Int
   )
 
 
@@ -56,32 +58,31 @@ attrName (Attribute x) =
 -------------------------------------------------------------------------------
 
 rooting :: Attribute
-rooting = Attribute $ inj (SProxy :: SProxy "rooting") unit
+rooting = Attribute $ inj A.rooting unit
 
 root :: Attribute
-root = Attribute $ inj (SProxy :: SProxy "root") unit
+root = Attribute $ inj A.root unit
 
 blocking :: Attribute
-blocking = Attribute $ inj (SProxy :: SProxy "blocking") unit
+blocking = Attribute $ inj A.blocking unit
 
 attackable :: Attribute
-attackable = Attribute $ inj (SProxy :: SProxy "attackable") unit
+attackable = Attribute $ inj A.attackable unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data
 -------------------------------------------------------------------------------
 
 sprite :: Sprite -> Attribute
-sprite = Attribute <<< inj (SProxy :: SProxy "sprite")
-prjSprite :: Attribute -> Maybe Sprite
-prjSprite (Attribute a) = prj (SProxy :: SProxy "sprite") a
+sprite = Attribute <<< inj A.sprite
 
 health :: Int -> Attribute
-health = Attribute <<< inj (SProxy :: SProxy "health")
-prjHealth :: Attribute -> Maybe Int
-prjHealth (Attribute a) = prj (SProxy :: SProxy "health") a
+health = Attribute <<< inj A.health
 
+-- growth time
 plant :: Int -> Attribute
-plant = Attribute <<< inj (SProxy :: SProxy "plant")
-prjPlant :: Attribute -> Maybe Int
-prjPlant (Attribute a) = prj (SProxy :: SProxy "plant") a
+plant = Attribute <<< inj A.plant
+
+-- stamina cost
+impedes :: Int -> Attribute
+impedes = Attribute <<< inj A.impedes

@@ -7,8 +7,8 @@ import Direction (Direction (..), move)
 import DimArray (index)
 import Extra.Prelude
 import Data.Terrain (blocksMovement)
-import GameState (getEntityType)
-import Data.Bimap as Bimap
+import GameState (getEntityType, getOccupant)
+import Entity (getAttribute)
 import Data.Attributes as A
 
 -- Javascript key codes here: https://keycode.info/
@@ -37,23 +37,22 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
-chooseSensibleAction g@(GameState gs) dir = 
-  case terrainBlocking of
-       true -> runningGameUI g
-       false ->
-         case Bimap.lookupR target gs.positions of
-              Nothing -> run $ Move dir
-              Just id ->
-                let et = getEntityType id g
-                    blocking = hasAttribute A.blocking et
-                    attackable = hasAttribute A.attackable et
-                 in case { blocking, attackable } of
-                    { attackable: true } -> run (Attack id)
-                    { blocking: true } -> runningGameUI g
-                    { blocking: false } -> run $ Move dir
+chooseSensibleAction g@(GameState gs) dir =
+  case { canAttack, terrainBlocking, blocking, tooImpeding } of
+    { terrainBlocking: true } -> runningGameUI g
+    { canAttack: Just id } -> run $ Attack id
+    { blocking: false, tooImpeding: false } -> run $ Move dir
+    _otherwise -> runningGameUI g
   where
-    target = move dir (playerPosition g)
-    targetTerrain = index gs.terrain target
-    terrainBlocking = case targetTerrain of
-      Nothing -> true
-      Just t -> blocksMovement t
+  target = move dir (playerPosition g)
+  occupant = getOccupant target g
+  occupantType = flip getEntityType g <$> occupant
+  terrainBlocking = fromMaybe true $ blocksMovement <$> index gs.terrain target
+  blocking = fromMaybe false $ hasAttribute A.blocking <$> occupantType
+  tooImpeding = fromMaybe false $
+    (getAttribute A.impedes =<< occupantType)
+    <#> \reqStamina -> reqStamina >= gs.stamina
+  canAttack = do
+    guard $ gs.stamina > 0
+    guard =<< (hasAttribute A.attackable <$> occupantType)
+    occupant
