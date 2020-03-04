@@ -5,9 +5,9 @@ import Extra.Prelude
 import Data.Sprite (Sprite, spriteAt)
 import DimArray (Dim (..))
 
-import Data.Typelevel.Num.Reps (D8)
+import Data.Typelevel.Num.Reps (D6)
 
-type Terrain = Dim D8 D8 Array TerrainType
+type Terrain = Dim D6 D6 Array TerrainType
 data TerrainType = Dirt | Rocks
 
 getTerrainSprite :: TerrainType -> Sprite
@@ -21,12 +21,11 @@ blocksMovement Rocks = true
 blocksMovement _ = false
 
 initTerrain :: Terrain
-initTerrain = Dim $ 
-    [ Rocks, Rocks, Rocks, Rocks, Rocks, Rocks, Rocks, Rocks,
-      Rocks, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Dirt, Dirt, Rocks, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Rocks, 
-      Rocks, Rocks, Rocks, Rocks, Rocks, Rocks, Rocks, Rocks ]
+initTerrain = Dim $
+    [ Dirt, Dirt, Dirt,  Dirt, Dirt, Dirt
+    , Dirt, Dirt, Rocks, Dirt, Dirt, Dirt
+    , Dirt, Dirt, Dirt,  Dirt, Dirt, Dirt
+    , Dirt, Dirt, Dirt,  Dirt, Dirt, Dirt
+    , Dirt, Dirt, Dirt,  Dirt, Dirt, Dirt
+    , Dirt, Dirt, Dirt,  Dirt, Dirt, Dirt
+    ]

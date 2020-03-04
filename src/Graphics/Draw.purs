@@ -22,6 +22,14 @@ import Data.Bimap as Bimap
 import Entity (getAttribute)
 import GameState (Transformation(..), getEntityPosition)
 import Data.Attributes as A
+import Data.Sprite as Sprite
+import Data.Array as Array
+
+type Shift = Vector Int
+
+mainShift :: Shift
+mainShift = V {x:0,y:1}
+
 
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
@@ -35,44 +43,52 @@ drawStartScreen ctx =
   drawLinesToGrid ctx white (V {x: 16, y: 10})
     [ "Press any key to start" ]
 
+
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx gs@(GameState {player, terrain}) = do
-  drawTerrain ctx terrain
-  drawEntities ctx gs
-  drawGrowth ctx gs
-  drawDamage ctx gs
+drawMainGame ctx gs@(GameState {player, terrain, stamina}) = do
+  drawStamina ctx stamina
+  drawTerrain ctx mainShift terrain
+  drawEntities ctx mainShift gs
+  drawGrowth ctx mainShift gs
+  drawDamage ctx mainShift gs
 
-drawTerrain :: Context -> Terrain -> Effect Unit
-drawTerrain ctx = traverseWithIndex_ $ \pos terrainType ->
-    drawSpriteToGrid ctx (getTerrainSprite terrainType) pos
+drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
+drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
+    drawSpriteToGrid ctx (getTerrainSprite terrainType) (pos + shift)
 
-drawEntities :: Context -> GameState -> Effect Unit
-drawEntities ctx g@(GameState gs) =
+drawStamina :: Context -> Int -> Effect Unit
+drawStamina ctx stamina =
+  for_ (Array.range 0 5) \x ->
+    let s = if stamina > x then Sprite.stamina else Sprite.blank
+     in drawSpriteToGrid ctx s (V {x,y:0})
+
+drawEntities :: Context -> Shift -> GameState -> Effect Unit
+drawEntities ctx shift g@(GameState gs) =
   traverseWithIndex_ f (Bimap.leftMap gs.positions)
   where
   f entityId pos =
     let et = getEntityType entityId g
      in case getAttribute A.sprite et of
-        Just sprite -> drawSpriteToGrid ctx sprite pos
+        Just sprite -> drawSpriteToGrid ctx sprite (pos + shift)
         Nothing -> pure unit
 
-drawGrowth :: Context -> GameState -> Effect Unit
-drawGrowth ctx g@(GameState gs) = 
+drawGrowth :: Context -> Shift -> GameState -> Effect Unit
+drawGrowth ctx shift g@(GameState gs) =
   traverse_ f gs.transformations
-  where 
+  where
   f t@(Transformation trans) =
     let pos = getEntityPosition trans.id g
         dots = trans.duration - trans.progress
      in case pos of
        Nothing -> pure unit
-       Just p -> drawGrowthToGrid ctx dots trans.duration p
+       Just p -> drawGrowthToGrid ctx dots trans.duration (p + shift)
 
-drawDamage :: Context -> GameState -> Effect Unit
-drawDamage ctx g@(GameState gs) = 
+drawDamage :: Context -> Shift -> GameState -> Effect Unit
+drawDamage ctx shift g@(GameState gs) =
   traverseWithIndex_ f gs.hp
-  where 
+  where
   f eid hp =
     let pos = getEntityPosition eid g
      in case pos of
        Nothing -> pure unit
-       Just p -> drawDamageToGrid ctx hp p
+       Just p -> drawDamageToGrid ctx hp (p + shift)

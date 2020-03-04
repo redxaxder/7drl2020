@@ -18,10 +18,18 @@ instance indexableArray :: Indexable Array where
 
 index :: forall w h a f. Indexable f => Nat w => Nat h
   => Dim w h f a -> Vector Int -> Maybe a
-index (Dim array) = ix array <<< toLinearIndex (Proxy :: Proxy w)
+index (Dim array) i =
+  toLinearIndex (Proxy :: Proxy w) (Proxy :: Proxy h) i >>= ix array
 
-toLinearIndex :: forall w. Nat w => Proxy w -> Vector Int -> Int
-toLinearIndex w (V {x,y}) = y * (toInt' w) + x
+toLinearIndex :: forall w h. Nat w => Nat h => Proxy w -> Proxy h -> Vector Int -> Maybe Int
+toLinearIndex w h (V {x,y}) = do
+  let w' = toInt' w
+      h' = toInt' h
+  guard $ x >= 0
+  guard $ y >= 0
+  guard $ x < w'
+  guard $ y < h'
+  pure $ y * w' + x
 
 fromLinearIndex :: forall w. Nat w => Proxy w -> Int -> Vector Int
 fromLinearIndex w i =

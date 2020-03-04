@@ -19,7 +19,7 @@ import Data.Attribute (class Attr, Attribute)
 import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Typelevel.Num.Reps (D8)
+import Data.Typelevel.Num.Reps (D6)
 
 newtype GameState = GameState
   { player :: EntityId
@@ -217,7 +217,7 @@ instance hoistRandom :: Hoist Random where
     modify_ $ \(GameState gs) -> GameState $ gs {rng = nextGen}
     pure result
 
-instance hoistTerrain :: Hoist (StateT (Dim D8 D8 Array TerrainType) Identity) where
+instance hoistTerrain :: Hoist (StateT (Dim D6 D6 Array TerrainType) Identity) where
   hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "terrain")
 
 instance hoistPositions :: Hoist (StateT (Bimap EntityId (Vector Int)) Identity) where

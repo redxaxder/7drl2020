@@ -20,10 +20,13 @@ tileMapDimensions =
 
 displayDimensions
   :: { width ∷ Int, height ∷ Int, drawWidth :: Int, drawHeight :: Int }
-displayDimensions = { width: 10, height: 10, drawWidth: 64, drawHeight: 64 }
+displayDimensions = { width: 6, height: 8, drawWidth: 64, drawHeight: 64 }
 
 canvasDimensions :: { width ∷ Number, height ∷ Number }
-canvasDimensions = { width: 640.0, height: 640.0 }
+canvasDimensions =
+  { width: toNumber $ displayDimensions.width * displayDimensions.drawWidth
+  , height: toNumber $ displayDimensions.height * displayDimensions.drawHeight
+  }
 
 newtype Color = Color String
 derive instance newtypeColor :: Newtype Color _
