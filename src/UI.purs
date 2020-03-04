@@ -51,7 +51,7 @@ chooseSensibleAction g@(GameState gs) dir =
   blocking = fromMaybe false $ hasAttribute A.blocking <$> occupantType
   tooImpeding = fromMaybe false $
     (getAttribute A.impedes =<< occupantType)
-    <#> \reqStamina -> reqStamina >= gs.stamina
+    <#> \reqStamina -> reqStamina > gs.stamina
   canAttack = do
     guard $ gs.stamina > 0
     guard =<< (hasAttribute A.attackable <$> occupantType)

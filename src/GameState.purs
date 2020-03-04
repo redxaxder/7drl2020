@@ -203,6 +203,10 @@ placeEntity eid pos = do
                        Just o -> modify $ killEntity o
   put $ GameState gs { positions = Bimap.insert eid pos gs.positions }
 
+
+alterStamina :: Int -> GameState -> GameState
+alterStamina s (GameState gs@{stamina}) = GameState gs { stamina = stamina + s }
+
 class Hoist m where
   hoist :: forall a. m a -> State GameState a
 
@@ -224,6 +228,3 @@ instance hoistEntities :: Hoist (StateT (Map EntityId EntityType) Identity) wher
 
 instance hoistTransformations :: Hoist (StateT (Array Transformation) Identity) where
   hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "transformations")
-
-instance hoistHp :: Hoist (StateT (Map EntityId Int) Identity) where
-  hoist = zoom $ _Newtype <<< prop (SProxy :: SProxy "hp")
