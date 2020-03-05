@@ -38,3 +38,12 @@ fruit! system
 ---- it's "technically a game"
 
 inventory system (3 slots?)
+  X collected items enter inventory
+  X display inventory
+  - use items
+
+item effects!
+  - ???
+  - ???
+  - ???
+  - ???

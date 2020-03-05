@@ -9,7 +9,7 @@ import Data.Map as Map
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
 import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
-import Random (Gen, Random, runRandom, intRange, element)
+import Random (Gen, Random, runRandom, element, unsafeElement)
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
 import Data.Attributes as A
@@ -158,11 +158,16 @@ tickItem gs =
 
 spawnItem :: State GameState Unit
 spawnItem = do
-  q <- toQuadrant <<< playerPosition <$> get
-  quadrantShift <- hoist $ intRange 1 3
-  x <- hoist $ intRange (-1) 1
-  y <- hoist $ intRange (-1) 1
-  let p = fromQuadrant (q + quadrantShift) + V {x,y}
+  playerQuadrant <- toQuadrant <<< playerPosition <$> get
+  GameState {terrain} <- get
+  let spawnOptions = do
+        x <- Array.range 0 5
+        y <- Array.range 0 5
+        let p = V{x,y}
+        guard $ toQuadrant p /= playerQuadrant
+        guard $ fromMaybe false $ not <<< blocksMovement <$> index terrain p
+        pure p
+  p <- hoist $ unsafeElement spawnOptions
   (Tuple {entityType} _) <- hoist $ element $ entitiesWithAttribute A.item
   void $ createEntity (EntityConfig { position: Just p, entityType })
   where

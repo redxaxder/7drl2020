@@ -20,6 +20,7 @@ import Random.Gen
   , runRandom
   , runRandom'
   , split
+  , unsafeElement
   )
 
 import Random.Blob

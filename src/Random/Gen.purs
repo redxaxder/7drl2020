@@ -14,12 +14,14 @@ module Random.Gen
   , runRandom
   , runRandom'
   , split
+  , unsafeElement
   ) where
 
 import Extra.Prelude
 
 import Effect.Random (randomInt)
-import Data.Array.NonEmpty (index)
+import Data.Array.NonEmpty (toArray)
+import Data.Array as Array
 import Partial.Unsafe (unsafePartial)
 
 import Random.Blob (Blob, Ints (..), Doubles(..), toInts, toDoubles, fromInts, perturb, merge)
@@ -86,9 +88,12 @@ intRange :: Int -> Int -> Random Int
 intRange low high = flip map nextInt $ \i -> (i `mod` (high - low + 1)) + low
 
 element :: forall a. NonEmptyArray a -> Random a
-element arr = unsafeIndex arr <$> intRange 0 (length arr - 1)
+element = unsafeElement <<< toArray
+
+unsafeElement :: forall a. Array a -> Random a
+unsafeElement arr = unsafeIndex arr <$> intRange 0 (length arr - 1)
   where
-  unsafeIndex a i = unsafePartial $ fromJust $ index a i
+  unsafeIndex a i = unsafePartial $ fromJust $ Array.index a i
 
 newtype Random a = Random (Gen -> { result :: a, nextGen :: Gen })
 
