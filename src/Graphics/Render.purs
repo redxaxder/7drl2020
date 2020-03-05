@@ -56,37 +56,56 @@ drawSpriteToGrid ctx sprite (V { x, y }) =
       ) $ drawSprite ctx sprite (V {x: canvasX, y: canvasY})
     -- (Canvas.drawImageFull context spritesheet sourceX sourceY w h canvasX canvasY w h)
 
+dotXLoc :: Number
+dotXLoc = toNumber 517
+
+dotYLoc :: Number
+dotYLoc = toNumber 504
+
+darkDotY :: Number
+darkDotY = toNumber 402
+
+dotXOffset :: Int -> Int -> Int -> Number
+dotXOffset i base width = toNumber $ base + (i - 1) * dotOrigSize * width
+
+dotHeight :: Number
+dotHeight = toNumber $ drawHeight / 8
+  where
+    { drawWidth, drawHeight } = displayDimensions
+
+dotOrigSize :: Int
+dotOrigSize = 2
+
+drawLightDot :: Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawLightDot = drawDot dotYLoc
+
+drawDarkDot :: Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawDarkDot = drawDot darkDotY
+
+drawDot :: Number -> Context -> Int -> Int -> Int -> Int -> Effect Unit
+drawDot yLoc (Context {context, spritesheet}) baseX baseY width i = 
+  Canvas.drawImageFull context spritesheet dotXLoc yLoc (toNumber dotOrigSize) (toNumber dotOrigSize) (dotXOffset i baseX width) (toNumber baseY) (toNumber width) dotHeight
+
 drawGrowthToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
-drawGrowthToGrid (Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
+drawGrowthToGrid ctx@(Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
   let
-    sourceX = toNumber 517
-    sourceY = toNumber 504
-    size = 2
     { drawWidth, drawHeight } = displayDimensions
     baseX = x * drawWidth
-    baseY = toNumber $ y * drawHeight
-    width = drawWidth / totalDots - totalDots
-    height = toNumber $ drawHeight / 8
-    f i = Canvas.drawImageFull context spritesheet sourceX sourceY (toNumber size) (toNumber size) (finalX i) baseY (toNumber width) height
-    finalX i = toNumber $ baseX + (i - 1) * size * width
-   in
-    traverse_ f (Array.range 1 ndots)
+    baseY = y * drawHeight
+    width = drawWidth / 16
+   in do
+    traverse_ (drawLightDot ctx baseX baseY width) (Array.range 1 ndots)
+    when (ndots < totalDots) $ traverse_ (drawDarkDot ctx baseX baseY width) (Array.range (ndots + 1) totalDots)
 
 drawDamageToGrid :: Context -> Int -> Vector Int -> Effect Unit
-drawDamageToGrid (Context {context, spritesheet}) ndots (V { x, y } ) = 
+drawDamageToGrid ctx@(Context {context, spritesheet}) ndots (V { x, y } ) = 
   let
-    sourceX = toNumber 517
-    sourceY = toNumber 504
-    size = 2
     { drawWidth, drawHeight } = displayDimensions
     baseX = x * drawWidth
-    baseY = toNumber $ y * drawHeight + drawHeight * 7 / 8
+    baseY = y * drawHeight + drawHeight * 7 / 8
     width = drawWidth / 10
-    height = toNumber $ drawHeight / 8
-    f i = Canvas.drawImageFull context spritesheet sourceX sourceY (toNumber size) (toNumber size) (finalX i) baseY (toNumber width) height
-    finalX i = toNumber $ baseX + (i - 1) * size * width
    in
-    traverse_ f (Array.range 1 ndots)
+    traverse_ (drawDarkDot ctx baseX baseY width) (Array.range 1 ndots)
 
 getTextDimensions :: String -> { width :: Number, height :: Number }
 getTextDimensions t = { width: charWidth * (toNumber $ String.length t), height: charHeight }
