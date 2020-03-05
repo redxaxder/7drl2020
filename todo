@@ -60,21 +60,21 @@ status effects!
 
 more plants!
   X spore pod  (image!)
-    - time: 1
-    - 1 hp
-    - trampleable
-    - grows plants in adj spaces on death
+    X time: 1
+    X 1 hp
+    X trampleable
+    X grows plants in adj spaces on death
   - dry grass (image!)
     - converted from grass?
     - flash fire thing
     - 1 hp
     - trampleable
   - vine (image!)
-    - time: 6
+    X time: 6
     - deals damage to adjacent trees each turn
     - spawn vine on dying trees
-    - 1 hp
-    - attackable
+    X 1 hp
+    X attackable
   - mushroom
   - cactus (image)
   - thornbush (image)

@@ -32,3 +32,6 @@ item = SProxy
 scatter :: SProxy "scatter"
 scatter = SProxy
 
+spread :: SProxy "spread"
+spread = SProxy
+

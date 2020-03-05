@@ -32,8 +32,9 @@ newtype EntityId = EntityId Int
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Grass | Player | Tree | Seed | Roots | Apple | Pear | Carrot | Pod
-
+data EntityType = Player | Seed | Roots
+  | Grass | Tree | Pod | Vine
+  | Apple | Pear | Carrot
 data SpawnEffect = MkRoots
 data Need = NeedRoots
 
@@ -80,6 +81,7 @@ entityTable = Map.fromFoldable
   , t Pear   [ spriteAttr 16 29, item ]
   , t Carrot [ spriteAttr 18 30, item ]
   , t Pod    [ spriteAttr 20 5, plant 1, R.scatter ]
+  , t Vine   [ spriteAttr 2 2, plant 6, R.spread, attackable ]
   ]
 
 increment :: EntityId -> EntityId

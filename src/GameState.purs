@@ -212,9 +212,9 @@ collectItem id = do
 killEntity :: EntityId -> State GameState Unit
 killEntity id = do
   doScatter <- checkEntityAttribute A.scatter id <$> get
-  when (spy "s" doScatter) $ do
+  when doScatter $ do
      g <- get
-     let spawnLocations = spy "ppp" do
+     let spawnLocations = do
           p <- Unfoldable.fromMaybe $ getEntityPosition id g
           getAdjacentEmptySpaces p g
      for_ spawnLocations spawnPlant

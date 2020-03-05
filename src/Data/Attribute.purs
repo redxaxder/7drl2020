@@ -18,8 +18,8 @@ type AttributeType =
   , impedes :: Int
   , item :: Unit
   , scatter :: Unit
+  , spread :: Unit
   )
-
 
 class Attr s a | s -> a where
   prjAttribute :: s -> Attribute -> Maybe a
@@ -76,6 +76,9 @@ item = Attribute $ inj A.item unit
 
 scatter :: Attribute
 scatter = Attribute $ inj A.scatter unit
+
+spread :: Attribute
+spread = Attribute $ inj A.spread unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data
