@@ -19,6 +19,12 @@ startScreen =
   , next: \_ -> run StartGame
   }
 
+gameOverScreen :: T.UIAwaitingInput
+gameOverScreen = 
+  { uiRender: GameOverScreen
+  , next: \_ -> run StartGame
+  }
+
 run :: Action -> T.UI
 run a = UIAction { uiAction: a, next: runningGameUI }
 
@@ -34,6 +40,7 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next "KeyJ"       = chooseSensibleAction gs D
     next "ArrowUp"    = chooseSensibleAction gs U
     next "KeyK"       = chooseSensibleAction gs U
+    next "KeyD"       = die gs
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
@@ -56,3 +63,6 @@ chooseSensibleAction g@(GameState gs) dir =
     guard $ gs.stamina > 0
     guard =<< (hasAttribute A.attackable <$> occupantType)
     occupant
+
+die :: GameState -> T.UI
+die _ = UIAwaitingInput gameOverScreen

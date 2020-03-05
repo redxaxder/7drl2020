@@ -17,7 +17,7 @@ import Types
   , Terrain
   , getEntityType
   )
-import Constants (white)
+import Constants (white, red)
 import Data.Bimap as Bimap
 import Entity (getAttribute)
 import GameState (Transformation(..), getEntityPosition)
@@ -30,19 +30,27 @@ type Shift = Vector Int
 mainShift :: Shift
 mainShift = V {x:0,y:1}
 
-
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
   clear ctx
   case uiState of
        StartScreen -> drawStartScreen ctx
        MainGame -> drawMainGame ctx gs
+       GameOverScreen -> drawGameOverScreen ctx gs
 
 drawStartScreen :: Context -> Effect Unit
 drawStartScreen ctx =
-  drawLinesToGrid ctx white (V {x: 16, y: 10})
+  drawLinesToGrid ctx white (V {x: 9, y: 10})
     [ "Press any key to start" ]
 
+drawGameOverScreen :: Context -> GameState -> Effect Unit
+drawGameOverScreen ctx (GameState {score}) = do
+  drawLinesToGrid ctx red (V {x: 14, y:10})
+    [ "GAME OVER" ]
+  drawLinesToGrid ctx white (V {x: 15, y: 12})
+    [ "score"
+    , show score
+    ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
 drawMainGame ctx gs@(GameState {player, terrain, stamina}) = do

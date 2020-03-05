@@ -34,3 +34,5 @@ type UIAction = UIF.UIAction GameState Action UIState Key
 data UIState
   = MainGame
   | StartScreen
+  | GameOverScreen
+  
