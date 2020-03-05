@@ -20,6 +20,7 @@ import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Typelevel.Num.Reps (D6)
+import Data.Unfoldable as Unfoldable
 
 newtype GameState = GameState
   { player :: EntityId
@@ -50,7 +51,7 @@ addTransformation t = modify_ $ Array.cons t
 transform :: EntityId -> EntityType -> GameState -> GameState
 transform id entityType = execState $ do
   GameState { positions } <- get
-  modify_ $ killEntity id
+  killEntity id
   createEntity $ EntityConfig
     { position: Bimap.lookup id positions
     , entityType
@@ -90,7 +91,7 @@ checkSurvival g@(GameState {positions}) =
                in if all satisfied reqs
                   then []
                   else [entityId]
-   in flip execState g $ for_ dying \d -> modify_ $ killEntity d
+   in flip execState g $ for_ dying killEntity
 
 tickTransformations :: GameState -> GameState
 tickTransformations (GameState gs) =
@@ -197,7 +198,7 @@ doAttack :: EntityId -> GameState -> GameState
 doAttack id g@(GameState gs) =
   let newHp = fromMaybe 0 (Map.lookup id gs.hp) - 1
    in if newHp <= 0
-      then killEntity id g
+      then execState (killEntity id) g
       else GameState gs { hp = Map.insert id newHp gs.hp }
 
 collectItem :: EntityId -> State GameState Unit
@@ -208,14 +209,32 @@ collectItem id = do
                     , positions = Bimap.delete id positions
                     }
 
-killEntity :: EntityId -> GameState -> GameState
-killEntity id (GameState gs) =
-  GameState $ gs
+killEntity :: EntityId -> State GameState Unit
+killEntity id = do
+  doScatter <- checkEntityAttribute A.scatter id <$> get
+  when (spy "s" doScatter) $ do
+     g <- get
+     let spawnLocations = spy "ppp" do
+          p <- Unfoldable.fromMaybe $ getEntityPosition id g
+          getAdjacentEmptySpaces p g
+     for_ spawnLocations spawnPlant
+  modify_ $ \(GameState gs) -> GameState gs
     { positions = Bimap.delete id gs.positions
     , entities = Map.delete id gs.entities
     , hp = Map.delete id gs.hp
     , transformations = Array.filter
         (\(Transformation{id: x}) -> x /= id) gs.transformations
+    }
+
+spawnPlant :: Position -> State GameState Unit
+spawnPlant p =  do
+  (Tuple {entityType} duration) <- hoist $ element (entitiesWithAttribute A.plant)
+  id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
+  hoist $ addTransformation $ Transformation
+    { id
+    , into: entityType
+    , progress: -1
+    , duration
     }
 
 getPlayer :: GameState -> EntityId
@@ -247,10 +266,11 @@ placeEntity :: EntityId -> Position -> State GameState Unit
 placeEntity eid pos = do
   GameState { positions } <- get
   occupant <- getOccupant pos <$> get
-  GameState gs <- case occupant of
-                       Nothing -> get
-                       Just o -> modify $ killEntity o
-  put $ GameState gs { positions = Bimap.insert eid pos gs.positions }
+  case occupant of
+    Nothing -> pure unit
+    Just o -> killEntity o
+  modify_ $ \(GameState gs) ->
+    GameState gs { positions = Bimap.insert eid pos gs.positions }
 
 
 alterStamina :: Int -> GameState -> GameState

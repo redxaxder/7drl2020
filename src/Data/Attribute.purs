@@ -17,6 +17,7 @@ type AttributeType =
   , health :: Int
   , impedes :: Int
   , item :: Unit
+  , scatter :: Unit
   )
 
 
@@ -72,6 +73,9 @@ attackable = Attribute $ inj A.attackable unit
 
 item :: Attribute
 item = Attribute $ inj A.item unit
+
+scatter :: Attribute
+scatter = Attribute $ inj A.scatter unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data

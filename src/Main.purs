@@ -12,17 +12,14 @@ import Graphics.Render (initCanvas)
 import Types
   ( GameState (..)
   , Action (..)
-  , EntityType (..)
-  , Position
   )
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, EntityConfig(..), createEntity, tick, hoist, addTransformation, Transformation (..), doAttack, getOccupant)
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, tick, doAttack, getOccupant)
 import GameState as GS
 import Data.Attributes as A
-import Random (newGen, element)
-import Entity (entitiesWithAttribute)
+import Random (newGen)
 
 
 main :: Effect Unit
@@ -45,17 +42,6 @@ main = unsafePartial $ launchAff_ $ do
 update :: GameState -> Action -> Maybe GameState
 update gs a = tick <$> handleAction gs a
 
-spawnPlant :: Position -> State GameState Unit
-spawnPlant p =  do
-  (Tuple {entityType} duration) <- hoist $ element (entitiesWithAttribute A.plant)
-  id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
-  hoist $ addTransformation $ Transformation
-    { id
-    , into: entityType
-    , progress: -1
-    , duration
-    }
-
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) = flip evalState gs $ do
@@ -74,7 +60,7 @@ handleAction gs (Move dir) = flip evalState gs $ do
         Just moveCost -> modify_ $ GS.alterStamina ((-1) * moveCost)
         Nothing -> pure unit
   placeEntity (getPlayer gs) newPos
-  spawnPlant oldPos
+  GS.spawnPlant oldPos
   Just <$> get
 handleAction gs (Attack target) = Just
   $ GS.alterStamina (-1) <<< doAttack target

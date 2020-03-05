@@ -22,6 +22,7 @@ import Data.Attribute
   , impedes
   , item
   )
+import Data.Attribute as R
 
 import Data.Array as Array
 import Data.Array.NonEmpty as NArray
@@ -31,7 +32,7 @@ newtype EntityId = EntityId Int
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Grass | Player | Tree | Seed | Roots | Apple | Pear | Carrot
+data EntityType = Grass | Player | Tree | Seed | Roots | Apple | Pear | Carrot | Pod
 
 data SpawnEffect = MkRoots
 data Need = NeedRoots
@@ -78,6 +79,7 @@ entityTable = Map.fromFoldable
   , t Apple  [ spriteAttr 15 29, item ]
   , t Pear   [ spriteAttr 16 29, item ]
   , t Carrot [ spriteAttr 18 30, item ]
+  , t Pod    [ spriteAttr 20 5, plant 1, R.scatter ]
   ]
 
 increment :: EntityId -> EntityId

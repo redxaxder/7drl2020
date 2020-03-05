@@ -28,3 +28,7 @@ impedes = SProxy
 
 item :: SProxy "item"
 item = SProxy
+
+scatter :: SProxy "scatter"
+scatter = SProxy
+

@@ -59,7 +59,7 @@ status effects!
   - only-grass buff  (pear)  [watering can]  (steps)
 
 more plants!
-  - spore pod  (image!)
+  X spore pod  (image!)
     - time: 1
     - 1 hp
     - trampleable
@@ -82,7 +82,7 @@ more plants!
 more plant interactions!
   - fire
   - vine
-  - spore
+  X spore
 
 difficulty progression
   - terrain advances
