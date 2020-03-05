@@ -20,7 +20,7 @@ import Types
 import Constants (white, red)
 import Data.Bimap as Bimap
 import Entity (getAttribute)
-import GameState (Transformation(..), getEntityPosition)
+import GameState (Transformation(..), getEntityPosition, getEntityAttribute)
 import Data.Attributes as A
 import Data.Sprite as Sprite
 import Data.Array as Array
@@ -30,6 +30,11 @@ type Shift = Vector Int
 mainShift :: Shift
 mainShift = V {x:0,y:1}
 
+inventoryShift :: Shift
+inventoryShift = V {x:0,y:7}
+
+staminaShift :: Shift
+staminaShift = V {x:0,y:0}
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
   clear ctx
@@ -53,22 +58,34 @@ drawGameOverScreen ctx (GameState {score}) = do
     ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx gs@(GameState {player, terrain, stamina}) = do
-  drawStamina ctx stamina
+drawMainGame ctx gs@(GameState {terrain, stamina}) = do
+  drawStamina ctx staminaShift stamina
   drawTerrain ctx mainShift terrain
   drawEntities ctx mainShift gs
   drawGrowth ctx mainShift gs
   drawDamage ctx mainShift gs
+  drawInventory ctx inventoryShift gs
 
 drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
 drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
     drawSpriteToGrid ctx (getTerrainSprite terrainType) (pos + shift)
 
-drawStamina :: Context -> Int -> Effect Unit
-drawStamina ctx stamina =
+drawStamina :: Context -> Shift -> Int -> Effect Unit
+drawStamina ctx shift stamina =
   for_ (Array.range 0 5) \x ->
     let s = if stamina > x then Sprite.stamina else Sprite.blank
-     in drawSpriteToGrid ctx s (V {x,y:0})
+     in drawSpriteToGrid ctx s (V {x,y:0} + shift)
+
+drawInventory :: Context -> Shift -> GameState -> Effect Unit
+drawInventory ctx shift gs@(GameState {inventory}) = do
+  drawSpriteToGrid ctx Sprite.one (V{x:0,y:0} + shift)
+  drawSpriteToGrid ctx Sprite.two (V{x:2,y:0} + shift)
+  drawSpriteToGrid ctx Sprite.three (V{x:4,y:0} + shift)
+  for_ (Array.range 0 2) \i ->
+     let sprite = fromMaybe Sprite.blank
+           $ Array.index inventory i >>= \id
+           -> getEntityAttribute A.sprite id gs
+      in drawSpriteToGrid ctx sprite (V{x: i*2 + 1, y:0} + shift)
 
 drawEntities :: Context -> Shift -> GameState -> Effect Unit
 drawEntities ctx shift g@(GameState gs) =

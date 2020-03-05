@@ -32,6 +32,7 @@ newtype GameState = GameState
   , positions :: Bimap EntityId Position
   , hp :: Map EntityId Int
   , score :: Int
+  , inventory :: Array EntityId
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -122,6 +123,7 @@ newGameState rng =
      , transformations: mempty
      , hp: mempty
      , score: 0
+     , inventory: mempty
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -195,9 +197,11 @@ doAttack id g@(GameState gs) =
 
 collectItem :: EntityId -> State GameState Unit
 collectItem id = do
-  (GameState g@{score}) <- get
-  put $ GameState g { score = score + 1 }
-
+  (GameState g@{score,inventory,positions}) <- get
+  put $ GameState g { score = score + 1
+                    , inventory = Array.snoc (Array.takeEnd 2 inventory) id
+                    , positions = Bimap.delete id positions
+                    }
 
 killEntity :: EntityId -> GameState -> GameState
 killEntity id (GameState gs) =
