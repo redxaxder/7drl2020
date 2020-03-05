@@ -28,8 +28,8 @@ stamina system
   X stamina-based actions
   X plant interactions
   X report stamina (bar?)
-  - die
-    - game over screen
+  X die
+    X game over screen
 
 fruit! system
   X spawn fruits (that dont do anything)
@@ -43,7 +43,50 @@ inventory system (3 slots?)
   - use items
 
 item effects!
-  - ???
-  - ???
-  - ???
-  - ???
+  - restore stamina  (apple)
+  - fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
+  - attack buff (meat)       [x slash]     (attacks)
+  - trip buff   (bread)      [boots]       (trips)
+  - time freeze  (carrot)    [hourglass]   (turns)
+  - only-grass buff  (pear)  [watering can]  (steps)
+
+status effects!
+  - restore stamina  (apple)
+  - fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
+  - attack buff (meat)       [x slash]     (attacks)
+  - trip buff   (bread)      [boots]       (trips)
+  - time freeze  (carrot)    [hourglass]   (turns)
+  - only-grass buff  (pear)  [watering can]  (steps)
+
+more plants!
+  - spore pod  (image!)
+    - time: 1
+    - 1 hp
+    - trampleable
+    - grows plants in adj spaces on death
+  - dry grass (image!)
+    - converted from grass?
+    - flash fire thing
+    - 1 hp
+    - trampleable
+  - vine (image!)
+    - time: 6
+    - deals damage to adjacent trees each turn
+    - spawn vine on dying trees
+    - 1 hp
+    - attackable
+  - mushroom
+  - cactus (image)
+  - thornbush (image)
+
+more plant interactions!
+  - fire
+  - vine
+  - spore
+
+difficulty progression
+  - terrain advances
+  - display terrain advancement
+  - plant transparency
+  - terrain advancement affects spawn rates
+
