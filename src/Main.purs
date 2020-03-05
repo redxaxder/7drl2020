@@ -59,13 +59,20 @@ spawnPlant p =  do
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (Move dir) = flip evalState gs $ do
+  -- In this block we have both the gamestate argument (gs) and the
+  -- gamestate State available. For reading we use the argument. This represents
+  -- how things were at the start of the turn, and this is what checks should
+  -- respond to. We use the State when making changes.
   let oldPos = playerPosition gs
       newPos = move dir oldPos
-      staminaChange = fromMaybe 0 $ do
-        occupant <- getOccupant newPos gs
-        cost <- GS.getEntityAttribute A.impedes occupant gs
-        pure $ -1 * cost
-  modify_ $ GS.alterStamina staminaChange
+  case getOccupant newPos gs of
+    Nothing -> pure unit  -- empty space
+    Just occupant -> do
+      when (GS.checkEntityAttribute A.item occupant gs) $ -- item
+        GS.collectItem occupant
+      case GS.getEntityAttribute A.impedes occupant gs of -- tripping obstacle
+        Just moveCost -> modify_ $ GS.alterStamina ((-1) * moveCost)
+        Nothing -> pure unit
   placeEntity (getPlayer gs) newPos
   spawnPlant oldPos
   Just <$> get

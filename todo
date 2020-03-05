@@ -32,8 +32,8 @@ stamina system
     - game over screen
 
 fruit! system
-  - spawn fruits (that dont do anything)
-  - collect fruits
+  X spawn fruits (that dont do anything)
+  X collect fruits
 
 ---- it's "technically a game"
 

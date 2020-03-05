@@ -31,6 +31,7 @@ newtype GameState = GameState
   , transformations :: Array Transformation
   , positions :: Bimap EntityId Position
   , hp :: Map EntityId Int
+  , score :: Int
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -55,7 +56,7 @@ transform id entityType = execState $ do
     }
 
 tick :: GameState -> GameState
-tick = tickItem <<< tickTransformations <<< checkSurvival
+tick = tickItem <<< checkSurvival <<< tickTransformations
 
 getEntitiesWithAttribute :: forall s a. Attr s a =>
   s -> GameState -> Array { entityId :: EntityId, attr :: a }
@@ -120,6 +121,7 @@ newGameState rng =
      , rng
      , transformations: mempty
      , hp: mempty
+     , score: 0
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -190,6 +192,12 @@ doAttack id g@(GameState gs) =
    in if newHp <= 0
       then killEntity id g
       else GameState gs { hp = Map.insert id newHp gs.hp }
+
+collectItem :: EntityId -> State GameState Unit
+collectItem id = do
+  (GameState g@{score}) <- get
+  put $ GameState g { score = score + 1 }
+
 
 killEntity :: EntityId -> GameState -> GameState
 killEntity id (GameState gs) =
