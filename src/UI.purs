@@ -47,7 +47,10 @@ chooseSensibleAction :: GameState -> Direction -> T.UI
 chooseSensibleAction g@(GameState gs) dir =
   case { canAttack, terrainBlocking, blocking, tooImpeding } of
     { terrainBlocking: true } -> runningGameUI g
-    { canAttack: Just id } -> run $ Attack id
+    { canAttack: Just id } ->
+      if gs.stamina > 0
+        then run $ Attack id
+        else runningGameUI g
     { blocking: false, tooImpeding: false } -> run $ Move dir
     _otherwise -> runningGameUI g
   where
@@ -60,7 +63,6 @@ chooseSensibleAction g@(GameState gs) dir =
     (getAttribute A.impedes =<< occupantType)
     <#> \reqStamina -> reqStamina > gs.stamina
   canAttack = do
-    guard $ gs.stamina > 0
     guard =<< (hasAttribute A.attackable <$> occupantType)
     occupant
 
