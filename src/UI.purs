@@ -41,6 +41,9 @@ runningGameUI gs = UIAwaitingInput { uiRender: MainGame, next}
     next "ArrowUp"    = chooseSensibleAction gs U
     next "KeyK"       = chooseSensibleAction gs U
     next "KeyD"       = die gs
+    next "Digit1"     = useItem gs 0
+    next "Digit2"     = useItem gs 1
+    next "Digit3"     = useItem gs 2
     next _            = runningGameUI gs
 
 chooseSensibleAction :: GameState -> Direction -> T.UI
@@ -68,3 +71,6 @@ chooseSensibleAction g@(GameState gs) dir =
 
 die :: GameState -> T.UI
 die _ = UIAwaitingInput gameOverScreen
+
+useItem :: GameState -> Int -> T.UI
+useItem gs i = run $ UseItem i

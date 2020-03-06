@@ -26,6 +26,7 @@ data Action =
   StartGame
   | Move Direction
   | Attack EntityId
+  | UseItem Int
 
 type UI = UIF.UI GameState Action UIState Key
 type UIAwaitingInput = UIF.UIAwaitingInput GameState Action UIState Key

@@ -44,6 +44,7 @@ update gs a = tick <$> handleAction gs a
 
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
+handleAction gs (UseItem i) = Just $ execState (GS.consumeItem i) gs
 handleAction gs (Move dir) = flip evalState gs $ do
   -- In this block we have both the gamestate argument (gs) and the
   -- gamestate State available. For reading we use the argument. This represents

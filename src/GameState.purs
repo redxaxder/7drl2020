@@ -209,6 +209,21 @@ collectItem id = do
                     , positions = Bimap.delete id positions
                     }
 
+consumeItem :: Int -> State GameState Unit
+consumeItem i = do
+  g@(GameState gs) <- get
+  let i' = Array.index gs.inventory i
+  case i' of
+    Nothing -> put $ g
+    Just item -> case getEntityType item g of
+      Apple -> put $ 
+        GameState gs { inventory = Array.filter (\f -> f /= item) gs.inventory
+                     , stamina = gs.stamina + 2
+                     }
+      _ -> put $
+        GameState gs { inventory = Array.filter (\f -> f /= item) gs.inventory }
+  
+
 killEntity :: EntityId -> State GameState Unit
 killEntity id = do
   doScatter <- checkEntityAttribute A.scatter id <$> get
