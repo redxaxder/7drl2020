@@ -15,7 +15,7 @@ import Types
   , UIState (..)
   , getTerrainSprite
   , Terrain
-  , getEntityType
+  , unsafeGetEntityType
   )
 import Constants (white, red)
 import Data.Bimap as Bimap
@@ -92,7 +92,7 @@ drawEntities ctx shift g@(GameState gs) =
   traverseWithIndex_ f (Bimap.leftMap gs.positions)
   where
   f entityId pos =
-    let et = getEntityType entityId g
+    let et = unsafeGetEntityType entityId g
      in case getAttribute A.sprite et of
         Just sprite -> drawSpriteToGrid ctx sprite (pos + shift)
         Nothing -> pure unit

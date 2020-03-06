@@ -7,7 +7,7 @@ import Direction (Direction (..), move)
 import DimArray (index)
 import Extra.Prelude
 import Data.Terrain (blocksMovement)
-import GameState (getEntityType, getOccupant)
+import GameState (unsafeGetEntityType, getOccupant)
 import Entity (getAttribute)
 import Data.Attributes as A
 
@@ -59,7 +59,7 @@ chooseSensibleAction g@(GameState gs) dir =
   where
   target = move dir (playerPosition g)
   occupant = getOccupant target g
-  occupantType = flip getEntityType g <$> occupant
+  occupantType = flip unsafeGetEntityType g <$> occupant
   terrainBlocking = fromMaybe true $ blocksMovement <$> index gs.terrain target
   blocking = fromMaybe false $ hasAttribute A.blocking <$> occupantType
   tooImpeding = fromMaybe false $

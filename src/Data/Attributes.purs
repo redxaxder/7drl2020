@@ -32,6 +32,14 @@ item = SProxy
 scatter :: SProxy "scatter"
 scatter = SProxy
 
-spread :: SProxy "spread"
-spread = SProxy
+parasitic :: SProxy "parasitic"
+parasitic = SProxy
 
+parasiteTarget :: SProxy "parasiteTarget"
+parasiteTarget = SProxy
+
+burns :: SProxy "burns"
+burns = SProxy
+
+flame :: SProxy "flame"
+flame = SProxy

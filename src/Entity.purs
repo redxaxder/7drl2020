@@ -32,9 +32,9 @@ newtype EntityId = EntityId Int
 derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
-data EntityType = Player | Seed | Roots
+data EntityType = Player | Seed | Roots | DryGrass | Fire
   | Grass | Tree | Pod | Vine
-  | Apple | Pear | Carrot | Meat | Bread
+  | Apple | Pear | Carrot | Meat | Bread | Torch
 data SpawnEffect = MkRoots
 data Need = NeedRoots
 
@@ -72,18 +72,26 @@ spriteAttr a b = sprite (spriteAt a b)
 
 entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
-  [ t Player [ spriteAttr 26 7 ]
-  , t Seed   [ spriteAttr 13 0 ]
-  , t Grass  [ spriteAttr 0 2, plant 1 ]
-  , t Tree   [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable]
-  , t Roots  [ spriteAttr 16 1, root, impedes 1 ]
+  [ t Player   [ spriteAttr 26 7 ]
+  -- spawnable plants
+  , t Grass    [ spriteAttr 0 2, plant 1, R.burns R.Dry ]
+  , t Tree     [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
+  , t Pod    [ spriteAttr 20 5, plant 1, R.scatter, R.burns R.Death ]
+  , t Vine   [ spriteAttr 2 2, plant 6, R.parasitic, attackable, blocking, R.burns R.Burn ]
+
+  -- Consumables
+  -- , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
+  -- , t Bread  [ spriteAttr 15 28, item R.NoTrip ]
   , t Apple  [ spriteAttr 15 29, item R.Restore ]
-  , t Pear   [ spriteAttr 16 29, item R.OnlyGrass ]
-  , t Carrot [ spriteAttr 18 30, item R.TimeFreeze ]
-  , t Pod    [ spriteAttr 20 5, plant 1, R.scatter ]
-  , t Vine   [ spriteAttr 2 2, plant 6, R.spread, attackable ]
-  , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
-  , t Bread  [ spriteAttr 15 28, item R.NoTrip ]
+  -- , t Pear   [ spriteAttr 16 29, item R.OnlyGrass ]
+  -- , t Carrot [ spriteAttr 18 30, item R.TimeFreeze ]
+  , t Torch  [ spriteAttr 11 25, item R.Fire ]
+
+  -- misc
+  , t Seed     [ spriteAttr 13 0, R.burns R.Death ]
+  , t Roots    [ spriteAttr 16 1, root, impedes 1 ]
+  , t Fire     [ spriteAttr 15 10, blocking, R.flame ]
+  , t DryGrass [ spriteAttr 21 2,  R.burns R.Flash ]
   ]
 
 increment :: EntityId -> EntityId
@@ -96,7 +104,7 @@ hasFlag a et = withAttribute a k
   k s _ = hasAttribute s et
 
 hasAttribute :: forall s a. Attr s a => s -> EntityType -> Boolean
-hasAttribute s et =  isJust $ getAttribute s et
+hasAttribute s et = isJust $ getAttribute s et
 
 getAttribute :: forall s a. Attr s a => s -> EntityType -> Maybe a
 getAttribute s et = prjAttribute s =<< find

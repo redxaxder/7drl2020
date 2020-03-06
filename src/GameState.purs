@@ -34,6 +34,7 @@ newtype GameState = GameState
   , hp :: Map EntityId Int
   , score :: Int
   , inventory :: Array EntityId
+  , playerDidBurn :: Boolean
   , attackBuff :: Int
   }
 
@@ -59,7 +60,10 @@ transform id entityType = execState $ do
     }
 
 tick :: GameState -> GameState
-tick = tickItem <<< checkSurvival <<< tickTransformations
+tick = clearBurn <<< tickItem <<< execState doCellularLogic <<< tickTransformations
+
+clearBurn :: GameState -> GameState
+clearBurn (GameState gs) = GameState gs { playerDidBurn = false }
 
 getEntitiesWithAttribute :: forall s a. Attr s a =>
   s -> GameState -> Array { entityId :: EntityId, attr :: a }
@@ -79,20 +83,64 @@ neighborRequirements = Map.fromFoldable
   , Tuple R.rooting [R.root]
   ]
 
-checkSurvival :: GameState -> GameState
-checkSurvival g@(GameState {positions}) =
-  let dying = flip foldMapWithIndex positions \entityId position ->
-              let et = getEntityType entityId g
+
+doCellularLogic :: State GameState Unit
+doCellularLogic = do
+  -- snapshot of the gamestate as it was when we started thid
+  -- we want to use this (rather than the current state) for all checks
+  -- all modification happens to the State variable, but all querying happens
+  -- using g
+  g@(GameState {positions,playerDidBurn}) <- get
+  -- first, check "starvation" of plants that dont have required neighbors
+  let starving = flip foldMapWithIndex positions \entityId position ->
+              let et = unsafeGetEntityType entityId g
                   reqs = flip foldMapWithIndex neighborRequirements
                     \is needs -> if hasFlag is et
                                  then needs
                                  else []
-                  adj = flip getEntityType g <$> neighbors position g
+                  adj = flip unsafeGetEntityType g <$> neighbors position g
                   satisfied req = any (hasFlag req) adj
                in if all satisfied reqs
                   then []
                   else [entityId]
-   in flip execState g $ for_ dying killEntity
+  for_ starving killEntity
+  -- kill overcrowded plants
+  -- TODO
+  -- next, do vine damage
+  traverse_ (modify_ <<< doAttack) $
+    flip foldMapWithIndex positions \entityId position ->
+      case checkEntityAttribute A.parasitic entityId g of
+        false -> mempty
+        true -> Array.filter
+          (\neighborId -> checkEntityAttribute A.parasiteTarget neighborId g)
+          (neighbors position g)
+  -- next, do fire effects
+  let doFireEffect { entityId, fireEffect: R.Death } = killEntity entityId
+      doFireEffect { entityId, fireEffect: R.Burn } = modify_ $ doAttack entityId
+      doFireEffect { entityId, fireEffect: R.Dry } =
+        modify_ $ \(GameState gs) ->
+          GameState gs { entities = Map.insert entityId DryGrass gs.entities }
+      doFireEffect { entityId, fireEffect: R.Flash } =
+        case getEntityPosition entityId g of
+             Nothing -> pure unit
+             Just p -> do
+               killEntity entityId
+               burnNeighbors p
+      burnNeighbors :: Position -> State GameState Unit
+      burnNeighbors position = flip traverse_ (neighbors position g) \entityId ->
+        case getEntityAttribute A.burns entityId g of
+          Nothing -> pure unit
+          Just fireEffect -> doFireEffect { entityId, fireEffect }
+  let playerBurn = if playerDidBurn
+        then Array.singleton $ playerPosition g
+        else mempty
+      fires = flip foldMapWithIndex positions \entityId position ->
+                      if checkEntityAttribute A.flame entityId g
+                        then Array.singleton {entityId, position}
+                        else mempty
+      burnPositions = playerBurn <> (_.position <$> fires)
+  for_ burnPositions burnNeighbors
+  for_ (_.entityId <$> fires) (modify_ <<< doAttack)
 
 tickTransformations :: GameState -> GameState
 tickTransformations (GameState gs) =
@@ -127,6 +175,7 @@ newGameState rng =
      , score: 0
      , inventory: mempty
      , attackBuff: 0
+     , playerDidBurn: false
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -144,10 +193,10 @@ createEntity (EntityConfig ec) = do
                   Just h -> Map.insert nextEntityId h gs.hp
       }
   when (hasAttribute A.rooting ec.entityType) do
-     gs <- get
-     for_ ec.position \center ->
-       for_ (getAdjacentEmptySpaces center gs) \p ->
-         createEntity (EntityConfig { position: Just p, entityType: Roots })
+    gs <- get
+    for_ ec.position \center ->
+      for_ (getAdjacentEmptySpaces center gs) \p ->
+        createEntity (EntityConfig { position: Just p, entityType: Roots })
   pure nextEntityId
 
 tickItem :: GameState -> GameState
@@ -197,11 +246,16 @@ getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
                          Just t -> not (blocksMovement t)
 
 doAttack :: EntityId -> GameState -> GameState
-doAttack id g@(GameState gs) =
-  let newHp = fromMaybe 0 (Map.lookup id gs.hp) - 1
-   in if newHp <= 0
-      then execState (killEntity id) g
-      else GameState gs { hp = Map.insert id newHp gs.hp }
+doAttack id g = execState (modifyEntityHp id (\x -> x-1)) g
+
+modifyEntityHp :: EntityId -> (Int -> Int) -> State GameState Unit
+modifyEntityHp eid f = do
+  (GameState gs@{hp}) <- get
+  let newHp = f $ fromMaybe 0 (Map.lookup eid gs.hp)
+  if newHp <= 0
+    then killEntity eid
+    else put $ GameState gs { hp = Map.insert eid newHp hp }
+
 
 collectItem :: EntityId -> State GameState Unit
 collectItem id = do
@@ -214,28 +268,47 @@ collectItem id = do
 consumeItem :: Int -> State GameState Unit
 consumeItem i = do
   g@(GameState gs) <- get
-  let itemEffect = do 
+  let itemEffect = do
         eid <- Array.index gs.inventory i
         getEntityAttribute A.item eid g
   let inventory = fromMaybe gs.inventory $ Array.deleteAt i gs.inventory
+  put $ GameState gs { inventory = inventory }
   case itemEffect of
-    Just R.Restore -> put $ 
-      GameState gs { inventory = inventory
-                   , stamina = gs.stamina + 2
-                   }
-    _ -> put $
-      GameState gs { inventory = inventory }
-  
+    Just R.Restore -> modify_ $ alterStamina 2
+    Just R.Fire -> modify_ $ \(GameState x) -> GameState x { playerDidBurn = true }
+    _ -> pure unit
 
 killEntity :: EntityId -> State GameState Unit
 killEntity id = do
-  doScatter <- checkEntityAttribute A.scatter id <$> get
+  g@(GameState {playerDidBurn} ) <- get
+  let mp = getEntityPosition id g
+      doScatter = checkEntityAttribute A.scatter id g
+      doFire = fromMaybe false $ do
+         fireResponse <- getEntityAttribute A.burns id g
+         _ <- Array.elemIndex fireResponse [R.Burn, R.Flash]
+         pure true
+      doVine = checkEntityAttribute A.parasiteTarget id g
+      neighbor = fromMaybe ff $ mp <#> \pos ->
+         flip any (neighbors pos g) \n ->
+           { doFire: checkEntityAttribute A.flame n g
+                 || (n == (getPlayer g) && playerDidBurn )
+           , doVine: checkEntityAttribute A.parasitic n g
+           }
+      spawnHere = {doFire,doVine} && neighbor
   when doScatter $ do
-     g <- get
-     let spawnLocations = do
-          p <- Unfoldable.fromMaybe $ getEntityPosition id g
+    let spawnLocations = do
+          p <- Unfoldable.fromMaybe mp
           getAdjacentEmptySpaces p g
-     for_ spawnLocations spawnPlant
+    for_ spawnLocations spawnPlant
+  --TODO: handling vines and fire
+  case spawnHere of
+       { doFire: true } -> do
+          let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
+          eid <- createEntity (EntityConfig { entityType: Fire, position: mp })
+          modifyEntityHp eid (\_ -> fireHp)
+       { doVine: true } -> pure unit -- todo: VINES
+       _ -> pure unit
+
   modify_ $ \(GameState gs) -> GameState gs
     { positions = Bimap.delete id gs.positions
     , entities = Map.delete id gs.entities
@@ -275,10 +348,13 @@ checkEntityAttribute s eid = isJust <<< getEntityAttribute s eid
 getEntityAttribute
   :: forall s a. Attr s a
    => s -> EntityId -> GameState -> Maybe a
-getEntityAttribute s eid = getAttribute s <<< getEntityType eid
+getEntityAttribute s eid gs = getAttribute s =<< getEntityType eid gs
 
-getEntityType :: EntityId -> GameState -> EntityType
-getEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
+getEntityType :: EntityId -> GameState -> Maybe EntityType
+getEntityType eid (GameState {entities}) = Map.lookup eid entities
+
+unsafeGetEntityType :: EntityId -> GameState -> EntityType
+unsafeGetEntityType eid (GameState {entities}) = unsafeFromJust $ Map.lookup eid entities
 
 placeEntity :: EntityId -> Position -> State GameState Unit
 placeEntity eid pos = do
@@ -290,9 +366,11 @@ placeEntity eid pos = do
   modify_ $ \(GameState gs) ->
     GameState gs { positions = Bimap.insert eid pos gs.positions }
 
-
 alterStamina :: Int -> GameState -> GameState
-alterStamina s (GameState gs@{stamina}) = GameState gs { stamina = stamina + s }
+alterStamina s (GameState gs@{stamina}) =
+  GameState gs { stamina = clamp $ stamina + s }
+  where
+  clamp x = max (min x 6) 0
 
 class Hoist m where
   hoist :: forall a. m a -> State GameState a

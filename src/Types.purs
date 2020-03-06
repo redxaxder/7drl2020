@@ -16,7 +16,7 @@ import Data.Sprite (Sprite (..), spriteAt)
 import Data.Terrain (Terrain, TerrainType (..), getTerrainSprite)
 import Direction (Direction)
 import Framework.UI (UI, UIAwaitingInput, UIAction) as UIF
-import GameState (GameState (..), playerPosition, getEntityType)
+import GameState (GameState (..), playerPosition, getEntityType, unsafeGetEntityType)
 import Entity (EntityType(..), EntityId, hasAttribute)
 
 

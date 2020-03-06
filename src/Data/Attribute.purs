@@ -18,13 +18,19 @@ type AttributeType =
   , impedes :: Int
   , item :: ItemEffect
   , scatter :: Unit
-  , spread :: Unit
+  , parasitic :: Unit
+  , parasiteTarget :: Unit
+  , burns :: Consequence
+  , flame :: Unit
   )
 
 data ItemEffect = Restore | Fire | AttackUp | NoTrip | TimeFreeze | OnlyGrass
+data Consequence = Flash | Burn | Dry | Death
 
 derive instance eqItemEffect :: Eq ItemEffect
 derive instance ordItemEffect :: Ord ItemEffect
+derive instance eqBurn :: Eq Consequence
+derive instance ordBurn :: Ord Consequence
 
 class Attr s a | s -> a where
   prjAttribute :: s -> Attribute -> Maybe a
@@ -79,8 +85,14 @@ attackable = Attribute $ inj A.attackable unit
 scatter :: Attribute
 scatter = Attribute $ inj A.scatter unit
 
-spread :: Attribute
-spread = Attribute $ inj A.spread unit
+parasitic :: Attribute
+parasitic = Attribute $ inj A.parasitic unit
+
+parasiteTarget :: Attribute
+parasiteTarget = Attribute $ inj A.parasiteTarget unit
+
+flame :: Attribute
+flame = Attribute $ inj A.flame unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data
@@ -102,3 +114,5 @@ impedes = Attribute <<< inj A.impedes
 
 item :: ItemEffect -> Attribute
 item = Attribute <<< inj A.item
+burns :: Consequence -> Attribute
+burns = Attribute <<< inj A.burns

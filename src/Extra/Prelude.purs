@@ -20,6 +20,7 @@ module Extra.Prelude
   , module Extra.Math
   , module Control.Monad.State
   , module Data.Symbol
+  , module Data.HeytingAlgebra
 
   , class Group
   , invert
@@ -64,6 +65,7 @@ import Data.Foldable
  , intercalate
  )
 import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_, foldMapWithIndex, class FoldableWithIndex, foldrWithIndex, foldlWithIndex)
+import Data.HeytingAlgebra (tt,ff)
 import Data.Identity (Identity (..))
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
