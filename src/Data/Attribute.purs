@@ -16,10 +16,15 @@ type AttributeType =
   , sprite :: Sprite
   , health :: Int
   , impedes :: Int
-  , item :: Unit
+  , item :: ItemEffect
   , scatter :: Unit
   , spread :: Unit
   )
+
+data ItemEffect = Restore | Fire | AttackUp | NoTrip | TimeFreeze | OnlyGrass
+
+derive instance eqItemEffect :: Eq ItemEffect
+derive instance ordItemEffect :: Ord ItemEffect
 
 class Attr s a | s -> a where
   prjAttribute :: s -> Attribute -> Maybe a
@@ -71,9 +76,6 @@ blocking = Attribute $ inj A.blocking unit
 attackable :: Attribute
 attackable = Attribute $ inj A.attackable unit
 
-item :: Attribute
-item = Attribute $ inj A.item unit
-
 scatter :: Attribute
 scatter = Attribute $ inj A.scatter unit
 
@@ -97,3 +99,6 @@ plant = Attribute <<< inj A.plant
 -- stamina cost
 impedes :: Int -> Attribute
 impedes = Attribute <<< inj A.impedes
+
+item :: ItemEffect -> Attribute
+item = Attribute <<< inj A.item

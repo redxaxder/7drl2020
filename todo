@@ -40,18 +40,10 @@ fruit! system
 inventory system (3 slots?)
   X collected items enter inventory
   X display inventory
-  - use items
+  X use items
 
 item effects!
-  - restore stamina  (apple)
-  - fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
-  - attack buff (meat)       [x slash]     (attacks)
-  - trip buff   (bread)      [boots]       (trips)
-  - time freeze  (carrot)    [hourglass]   (turns)
-  - only-grass buff  (pear)  [watering can]  (steps)
-
-status effects!
-  - restore stamina  (apple)
+  X restore stamina  (apple)
   - fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
   - attack buff (meat)       [x slash]     (attacks)
   - trip buff   (bread)      [boots]       (trips)

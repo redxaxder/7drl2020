@@ -13,7 +13,7 @@ import Random (Gen, Random, runRandom, element, unsafeElement)
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
 import Data.Attributes as A
-import Data.Attribute as F
+import Data.Attribute as R
 import Data.Attribute (class Attr, Attribute)
 
 import Data.Lens.Zoom (zoom)
@@ -34,6 +34,7 @@ newtype GameState = GameState
   , hp :: Map EntityId Int
   , score :: Int
   , inventory :: Array EntityId
+  , attackBuff :: Int
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -74,8 +75,8 @@ neighbors center gs = Array.catMaybes $
 
 neighborRequirements :: Map Attribute (Array Attribute)
 neighborRequirements = Map.fromFoldable
-  [ Tuple F.root [F.rooting]
-  , Tuple F.rooting [F.root]
+  [ Tuple R.root [R.rooting]
+  , Tuple R.rooting [R.root]
   ]
 
 checkSurvival :: GameState -> GameState
@@ -125,6 +126,7 @@ newGameState rng =
      , hp: mempty
      , score: 0
      , inventory: mempty
+     , attackBuff: 0
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -212,16 +214,17 @@ collectItem id = do
 consumeItem :: Int -> State GameState Unit
 consumeItem i = do
   g@(GameState gs) <- get
-  let i' = Array.index gs.inventory i
-  case i' of
-    Nothing -> put $ g
-    Just item -> case getEntityType item g of
-      Apple -> put $ 
-        GameState gs { inventory = Array.filter (\f -> f /= item) gs.inventory
-                     , stamina = gs.stamina + 2
-                     }
-      _ -> put $
-        GameState gs { inventory = Array.filter (\f -> f /= item) gs.inventory }
+  let itemEffect = do 
+        eid <- Array.index gs.inventory i
+        getEntityAttribute A.item eid g
+  let inventory = fromMaybe gs.inventory $ Array.deleteAt i gs.inventory
+  case itemEffect of
+    Just R.Restore -> put $ 
+      GameState gs { inventory = inventory
+                   , stamina = gs.stamina + 2
+                   }
+    _ -> put $
+      GameState gs { inventory = inventory }
   
 
 killEntity :: EntityId -> State GameState Unit
