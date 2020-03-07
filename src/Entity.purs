@@ -74,10 +74,10 @@ entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
   [ t Player   [ spriteAttr 26 7 ]
   -- spawnable plants
-  , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry ]
+  , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry, R.crowded R.Dry ]
   , t Tree     [ spriteAttr 0 1, health 3, plant 4 4, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
   , t Pod    [ spriteAttr 20 5, plant 1 2, R.scatter, R.burns R.Death ]
-  , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn ]
+  , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn, R.crowded R.Death ]
 
   -- Consumables
   , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
@@ -91,7 +91,7 @@ entityTable = Map.fromFoldable
   , t Seed     [ spriteAttr 13 0, R.burns R.Death ]
   , t Roots    [ spriteAttr 16 1, root, impedes 1 ]
   , t Fire     [ spriteAttr 15 10, blocking, R.flame ]
-  , t DryGrass [ spriteAttr 21 2,  R.burns R.Flash ]
+  , t DryGrass [ spriteAttr 21 2,  R.burns R.Flash, R.crowded R.Death ]
   ]
 
 increment :: EntityId -> EntityId

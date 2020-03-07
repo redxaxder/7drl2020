@@ -112,8 +112,18 @@ doCellularLogic = do
                   then []
                   else [entityId]
   for_ starving killEntity
-  -- kill overcrowded plants
-  -- TODO
+  -- handle overcrowded plants
+  let overcrowded = flip foldMapWithIndex positions \entityId position ->
+        case getEntityAttribute A.crowded entityId g of
+          Nothing -> mempty
+          Just consequence -> do
+             guard $ Array.null $ getAdjacentEmptySpaces8 position g
+             Array.singleton {consequence, entityId}
+  for_ overcrowded $ case _ of
+    { consequence: R.Dry, entityId } -> modify_ $ \(GameState gs) ->
+      GameState gs { entities = Map.insert entityId DryGrass gs.entities }
+    { consequence: R.Death, entityId } -> killEntity entityId
+    _otherwise -> pure unit
   -- next, do vine damage
   traverse_ (modify_ <<< doAttack) $
     flip foldMapWithIndex positions \entityId position ->
@@ -267,6 +277,24 @@ getAdjacentEmptySpaces :: Position -> GameState -> Array Position
 getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
   Array.filter isGood $ move <$> [U, D, L, R] <*> pure pos
   where
+  isGood p = not (isJust $ getOccupant p g) && isFreeTerrain p
+  isFreeTerrain p = case index terrain p of
+                         Nothing -> false
+                         Just t -> not (blocksMovement t)
+
+getAdjacentEmptySpaces8 :: Position -> GameState -> Array Position
+getAdjacentEmptySpaces8 pos g@(GameState { positions, terrain }) =
+  Array.filter isGood $ (+) <$> dir8 <*> pure pos
+  where
+  dir8 = [ V{ x:  0, y:  1 }
+         , V{ x:  0, y: -1 }
+         , V{ x:  1, y:  0 }
+         , V{ x: -1, y:  0 }
+         , V{ x:  1, y:  1 }
+         , V{ x:  1, y: -1 }
+         , V{ x: -1, y:  1 }
+         , V{ x: -1, y: -1 }
+         ]
   isGood p = not (isJust $ getOccupant p g) && isFreeTerrain p
   isFreeTerrain p = case index terrain p of
                          Nothing -> false

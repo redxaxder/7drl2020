@@ -43,3 +43,6 @@ burns = SProxy
 
 flame :: SProxy "flame"
 flame = SProxy
+
+crowded :: SProxy "crowded"
+crowded = SProxy
