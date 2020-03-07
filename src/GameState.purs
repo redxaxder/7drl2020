@@ -407,7 +407,7 @@ eraseEntity id =
 plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
 plantWeight (Dirt n) { difficulty } =
   let q = (7 - abs (n - difficulty))
-      result = q * q * q * q
+      result = q * q * q * q * q
    in result
 plantWeight _ _ = 1
 
