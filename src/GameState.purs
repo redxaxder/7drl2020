@@ -284,11 +284,15 @@ collectItem id = do
 consumeItem :: Int -> State GameState Unit
 consumeItem i = do
   g@(GameState gs) <- get
+  let meid = Array.index gs.inventory i
   let itemEffect = do
-        eid <- Array.index gs.inventory i
+        eid <- meid
         getEntityAttribute A.item eid g
   let inventory = fromMaybe gs.inventory $ Array.deleteAt i gs.inventory
-  put $ GameState gs { inventory = inventory }
+  let ets = case meid of
+        Nothing -> gs.entities
+        Just eid = Map.delete eid gs.entities
+  put $ GameState gs { inventory = inventory, entities = ets }
   case itemEffect of
     Just R.Restore -> modify_ $ alterStamina 2
     Just R.Fire -> modify_ $ \(GameState x) -> GameState x { playerDidBurn = true }
