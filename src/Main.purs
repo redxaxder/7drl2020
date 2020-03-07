@@ -16,7 +16,7 @@ import Types
 import Framework.Engine (runEngine)
 import UI (startScreen)
 import Direction (move)
-import GameState (newGameState, playerPosition, placeEntity, getPlayer, tick, doAttack, getOccupant)
+import GameState (newGameState, playerPosition, placeEntity, getPlayer, tick, getOccupant)
 import GameState as GS
 import Data.Attributes as A
 import Random (newGen)
@@ -64,5 +64,5 @@ handleAction gs (Move dir) = flip evalState gs $ do
   GS.spawnPlant oldPos
   Just <$> get
 handleAction gs (Attack target) = Just
-  $ GS.alterStamina (-1) <<< doAttack target
+  $ GS.alterStamina (-1) <<< GS.doPlayerAttack target
   $ gs

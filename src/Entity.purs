@@ -80,7 +80,7 @@ entityTable = Map.fromFoldable
   , t Vine   [ spriteAttr 2 2, plant 6, R.parasitic, attackable, blocking, R.burns R.Burn ]
 
   -- Consumables
-  -- , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
+  , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
   -- , t Bread  [ spriteAttr 15 28, item R.NoTrip ]
   , t Apple  [ spriteAttr 15 29, item R.Restore ]
   -- , t Pear   [ spriteAttr 16 29, item R.OnlyGrass ]

@@ -255,6 +255,13 @@ getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
                          Nothing -> false
                          Just t -> not (blocksMovement t)
 
+doPlayerAttack :: EntityId -> GameState -> GameState
+doPlayerAttack id g = flip execState g do
+  (GameState gs@{attackBuff}) <- get
+  let attack = if gs.attackBuff > 0 then 3 else 1
+  put $ GameState gs { attackBuff = max 0 $ attackBuff - 1 }
+  (modifyEntityHp id (\x -> x-attack))
+
 doAttack :: EntityId -> GameState -> GameState
 doAttack id g = execState (modifyEntityHp id (\x -> x-1)) g
 
@@ -265,7 +272,6 @@ modifyEntityHp eid f = do
   if newHp <= 0
     then killEntity eid
     else put $ GameState gs { hp = Map.insert eid newHp hp }
-
 
 collectItem :: EntityId -> State GameState Unit
 collectItem id = do
@@ -286,6 +292,7 @@ consumeItem i = do
   case itemEffect of
     Just R.Restore -> modify_ $ alterStamina 2
     Just R.Fire -> modify_ $ \(GameState x) -> GameState x { playerDidBurn = true }
+    Just R.AttackUp -> modify_ $ \(GameState x) -> GameState x { attackBuff = 4 }
     _ -> pure unit
 
 killEntity :: EntityId -> State GameState Unit
