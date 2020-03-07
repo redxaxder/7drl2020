@@ -404,8 +404,8 @@ eraseEntity id =
 
 plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
 plantWeight (Dirt n) { difficulty } =
-  let q = (6 - abs (n - difficulty))
-      result = q * q * q
+  let q = (7 - abs (n - difficulty))
+      result = q * q * q * q
    in result
 plantWeight _ _ = 1
 
@@ -415,7 +415,7 @@ spawnPlant p = do
   case index terrain p of
     Nothing -> pure unit
     Just t -> do
-      (Tuple {entityType} {growth}) <- 
+      (Tuple {entityType} {growth}) <-
         if onlyGrass > 0
           then hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd) $ Array.singleton $ Tuple (lookupEntity Grass) { difficulty: 0, growth: 1 }
           else hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd) $ NEArray.toArray $ entitiesWithAttribute A.plant
