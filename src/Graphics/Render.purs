@@ -69,7 +69,7 @@ dotXOffset :: Int -> Int -> Int -> Number
 dotXOffset i base width = toNumber $ base + (i - 1) * dotOrigSize * width
 
 dotHeight :: Number
-dotHeight = toNumber $ drawHeight / 8
+dotHeight = toNumber $ (drawHeight / 8) - 3
   where
     { drawWidth, drawHeight } = displayDimensions
 
@@ -90,8 +90,8 @@ drawGrowthToGrid :: Context -> Int -> Int -> Vector Int -> Effect Unit
 drawGrowthToGrid ctx@(Context {context, spritesheet}) ndots totalDots (V { x, y } ) =
   let
     { drawWidth, drawHeight } = displayDimensions
-    baseX = x * drawWidth
-    baseY = y * drawHeight
+    baseX = x * drawWidth + 10
+    baseY = y * drawHeight + 10
     width = drawWidth / 16
    in do
     traverse_ (drawLightDot ctx baseX baseY width) (Array.range 1 ndots)
@@ -101,11 +101,11 @@ drawDamageToGrid :: Context -> Int -> Vector Int -> Effect Unit
 drawDamageToGrid ctx@(Context {context, spritesheet}) ndots (V { x, y } ) = 
   let
     { drawWidth, drawHeight } = displayDimensions
-    baseX = x * drawWidth
-    baseY = y * drawHeight + drawHeight * 7 / 8
+    baseX = x * drawWidth + 10
+    baseY = y * drawHeight + drawHeight * 7 / 8 - 5
     width = drawWidth / 10
    in
-    traverse_ (drawDarkDot ctx baseX baseY width) (Array.range 1 ndots)
+    traverse_ (drawLightDot ctx baseX baseY width) (Array.range 1 ndots)
 
 getTextDimensions :: String -> { width :: Number, height :: Number }
 getTextDimensions t = { width: charWidth * (toNumber $ String.length t), height: charHeight }
