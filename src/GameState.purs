@@ -12,7 +12,7 @@ import Data.Ord (abs)
 
 import Data.Position (Position)
 import Data.Terrain (Terrain, initTerrain, TerrainType (..), blocksMovement, advanceTerrain)
-import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
+import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute, lookupEntity)
 import Random (Gen, Random, runRandom, element, unsafeElement)
 import Random as Random
 import DimArray (Dim, index)
@@ -42,6 +42,7 @@ newtype GameState = GameState
   , attackBuff :: Int
   , noTrip :: Int
   , timeFreeze :: Int
+  , onlyGrass :: Int
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -213,6 +214,7 @@ newGameState rng0 =
      , playerDidBurn: false
      , noTrip: 0
      , timeFreeze: 0
+     , onlyGrass: 0
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -350,7 +352,9 @@ consumeItem i = do
     Just R.NoTrip -> modify_ $ 
       \(GameState x) -> GameState x { noTrip = effectDuration }
     Just R.TimeFreeze -> modify_ 
-      $ \(GameState x) -> GameState x { timeFreeze = effectDuration + 1}
+      $ \(GameState x) -> GameState x { timeFreeze = effectDuration + 1 }
+    Just R.OnlyGrass -> modify_ 
+      $ \(GameState x) -> GameState x { onlyGrass = effectDuration }
     _ -> pure unit
 
 killEntity :: EntityId -> State GameState Unit
@@ -407,13 +411,15 @@ plantWeight _ _ = 1
 
 spawnPlant :: Position -> State GameState Unit
 spawnPlant p = do
-  (GameState {terrain}) <- get
+  (GameState gs@{terrain, onlyGrass}) <- get
   case index terrain p of
     Nothing -> pure unit
     Just t -> do
-      (Tuple {entityType} {growth}) <-
-        hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd)
-          $ NEArray.toArray $ entitiesWithAttribute A.plant
+      (Tuple {entityType} {growth}) <- 
+        if onlyGrass > 0
+          then hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd) $ Array.singleton $ Tuple (lookupEntity Grass) { difficulty: 0, growth: 1 }
+          else hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd) $ NEArray.toArray $ entitiesWithAttribute A.plant
+      put $ GameState gs { onlyGrass = max 0 $ onlyGrass - 1 }
       id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
       hoist $ addTransformation $ Transformation
         { id
