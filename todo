@@ -44,7 +44,7 @@ inventory system (3 slots?)
 
 item effects!
   X restore stamina  (apple)
-  - fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
+  X fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
   - attack buff (meat)       [x slash]     (attacks)
   - trip buff   (bread)      [boots]       (trips)
   - time freeze  (carrot)    [hourglass]   (turns)
@@ -56,15 +56,15 @@ more plants!
     X 1 hp
     X trampleable
     X grows plants in adj spaces on death
-  - dry grass (image!)
-    - converted from grass?
-    - flash fire thing
-    - 1 hp
-    - trampleable
-  - vine (image!)
+  X dry grass (image!)
+    X converted from grass?
+    X flash fire thing
+    X 1 hp
+    X trampleable
+  X vine (image!)
     X time: 6
-    - deals damage to adjacent trees each turn
-    - spawn vine on dying trees
+    X deals damage to adjacent trees each turn
+    X spawn vine on dying trees
     X 1 hp
     X attackable
   - mushroom
@@ -72,8 +72,8 @@ more plants!
   - thornbush (image)
 
 more plant interactions!
-  - fire
-  - vine
+  X fire
+  X vine
   X spore
 
 difficulty progression
