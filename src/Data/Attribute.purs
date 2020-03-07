@@ -26,7 +26,7 @@ type AttributeType =
   )
 
 data ItemEffect = Restore | Fire | AttackUp | NoTrip | TimeFreeze | OnlyGrass
-data Consequence = Flash | Burn | Dry | Death
+data Consequence = Flash | Burn | Dry | Harm
 
 derive instance eqItemEffect :: Eq ItemEffect
 derive instance ordItemEffect :: Ord ItemEffect

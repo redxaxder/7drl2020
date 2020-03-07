@@ -111,7 +111,7 @@ doCellularLogic = do
                in if all satisfied reqs
                   then []
                   else [entityId]
-  for_ starving killEntity
+  for_ starving $ modify <<< doAttack
   -- handle overcrowded plants
   let overcrowded = flip foldMapWithIndex positions \entityId position ->
         case getEntityAttribute A.crowded entityId g of
@@ -122,7 +122,7 @@ doCellularLogic = do
   for_ overcrowded $ case _ of
     { consequence: R.Dry, entityId } -> modify_ $ \(GameState gs) ->
       GameState gs { entities = Map.insert entityId DryGrass gs.entities }
-    { consequence: R.Death, entityId } -> killEntity entityId
+    { consequence: R.Harm, entityId } -> modify_ $ doAttack entityId
     _otherwise -> pure unit
   -- next, do vine damage
   traverse_ (modify_ <<< doAttack) $
@@ -134,8 +134,8 @@ doCellularLogic = do
           (neighbors position g)
   -- next, do fire effects
   let doFireEffect :: Array EntityId -> {entityId :: EntityId, fireEffect :: R.Consequence } -> State GameState (Array EntityId)
-      doFireEffect safe { entityId, fireEffect: R.Death } = do
-        killEntity entityId
+      doFireEffect safe { entityId, fireEffect: R.Harm } = do
+        modify_ $ doAttack entityId
         pure safe
       doFireEffect safe { entityId, fireEffect: R.Burn } = do
         modify_ $ doAttack entityId
@@ -400,7 +400,7 @@ eraseEntity id =
 
 plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
 plantWeight (Dirt n) { difficulty } =
-  let q = (4 - abs (n - difficulty))
+  let q = (6 - abs (n - difficulty))
       result = q * q * q
    in result
 plantWeight _ _ = 1

@@ -68,7 +68,10 @@ more plants!
     X 1 hp
     X attackable
   - mushroom
-  - cactus (image)
+  X cactus (image)
+    X time: 1
+    X 4 hp
+    X attackable
   - thornbush (image)
 
 more plant interactions!
