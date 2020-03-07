@@ -300,13 +300,13 @@ killEntity id = do
           p <- Unfoldable.fromMaybe mp
           getAdjacentEmptySpaces p g
     for_ spawnLocations spawnPlant
-  --TODO: handling vines and fire
   case spawnHere of
        { doFire: true } -> do
           let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
           eid <- createEntity (EntityConfig { entityType: Fire, position: mp })
           modifyEntityHp eid (\_ -> fireHp)
-       { doVine: true } -> pure unit -- todo: VINES
+       { doVine: true } -> 
+         void $ createEntity (EntityConfig { entityType: Vine, position: mp })
        _ -> pure unit
 
   modify_ $ \(GameState gs) -> GameState gs
