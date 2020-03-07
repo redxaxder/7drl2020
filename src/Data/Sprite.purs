@@ -1,6 +1,7 @@
 module Data.Sprite where
 
 import Extra.Prelude
+import Data.Char as Char
 
 newtype Sprite = Sprite { offsetX :: Int, offsetY :: Int }
 
@@ -30,3 +31,13 @@ blank = spriteAt 0 0
 
 digitSprite :: Int -> Sprite
 digitSprite i  = spriteAt (19 + i) 29
+
+letterSprite :: Char -> Sprite
+letterSprite c =
+  if      c >= 'a' && c <= 'm' then spriteAt (19 + shift c 'a') 30
+  else if c >= 'A' && c <= 'M' then spriteAt (19 + shift c 'A') 30
+  else if c >= 'n' && c <= 'z' then spriteAt (19 + shift c 'n') 31
+  else if c >= 'N' && c <= 'Z' then spriteAt (19 + shift c 'N') 31
+  else blank
+  where shift a b = Char.toCharCode a - Char.toCharCode b
+

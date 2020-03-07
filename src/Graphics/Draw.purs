@@ -5,7 +5,6 @@ import Extra.Prelude
 import Graphics.Render
   ( Context
   , clear
-  , drawLinesToGrid
   , drawSpriteToGrid
   , drawGrowthToGrid
   , drawDamageToGrid
@@ -17,7 +16,6 @@ import Types
   , Terrain
   , unsafeGetEntityType
   )
-import Constants (white, red)
 import Data.Bimap as Bimap
 import Entity (getAttribute)
 import GameState (Transformation(..), getEntityPosition, getEntityAttribute)
@@ -40,19 +38,38 @@ draw ctx uiState gs = do
        MainGame -> drawMainGame ctx gs
        GameOverScreen -> drawGameOverScreen ctx gs
 
+drawTextSprites :: Context -> Shift -> String -> Effect Unit
+drawTextSprites ctx shift str =
+  forWithIndex_ (Sprite.letterSprite <$> String.toCharArray str) \x s ->
+    drawSpriteToGrid ctx s (V{x,y:0} + shift)
+
+
+
 drawStartScreen :: Context -> Effect Unit
-drawStartScreen ctx =
-  drawLinesToGrid ctx white (V {x: 9, y: 10})
-    [ "Press any key to start" ]
+drawStartScreen ctx = forWithIndex_
+  [ "        "
+  , "Press   "
+  , "        "
+  , "any key "
+  , "        "
+  , "to start"
+  , "        "
+  , "        "
+  ] \y str -> drawTextSprites ctx (V{x:0,y}) str
 
 drawGameOverScreen :: Context -> GameState -> Effect Unit
 drawGameOverScreen ctx (GameState {score}) = do
-  drawLinesToGrid ctx red (V {x: 14, y:10})
-    [ "GAME OVER" ]
-  drawLinesToGrid ctx white (V {x: 15, y: 12})
-    [ "score"
-    , show score
-    ]
+  forWithIndex_
+    [ "        "
+    , " Final  "
+    , "        "
+    , " score  "
+    , "        "
+    , "   000  "
+    , "        "
+    , "        "
+    ] \y str -> drawTextSprites ctx (V{x:0,y}) str
+  drawScore ctx (V{x:3,y:5}) score
 
 drawMainGame :: Context -> GameState -> Effect Unit
 drawMainGame ctx gs@(GameState { terrain

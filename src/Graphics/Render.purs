@@ -69,7 +69,7 @@ dotXOffset :: Int -> Int -> Int -> Number
 dotXOffset i base width = toNumber $ base + (i - 1) * dotOrigSize * width
 
 dotHeight :: Number
-dotHeight = toNumber $ (drawHeight / 8) - 3
+dotHeight = toNumber $ (drawHeight / 8) - 1
   where
     { drawWidth, drawHeight } = displayDimensions
 
@@ -102,7 +102,7 @@ drawDamageToGrid ctx@(Context {context, spritesheet}) ndots (V { x, y } ) =
   let
     { drawWidth, drawHeight } = displayDimensions
     baseX = x * drawWidth + 10
-    baseY = y * drawHeight + drawHeight * 7 / 8 - 5
+    baseY = y * drawHeight + drawHeight * 7 / 8
     width = drawWidth / 10
    in
     traverse_ (drawLightDot ctx baseX baseY width) (Array.range 1 ndots)
