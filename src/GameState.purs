@@ -277,7 +277,7 @@ getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
 doPlayerAttack :: EntityId -> GameState -> GameState
 doPlayerAttack id g = flip execState g do
   (GameState gs@{attackBuff}) <- get
-  let attack = if gs.attackBuff > 0 then 3 else 1
+  let attack = if gs.attackBuff > 0 then 2 else 1
   put $ GameState gs { attackBuff = max 0 $ attackBuff - 1 }
   (modifyEntityHp id (\x -> x-attack))
 
