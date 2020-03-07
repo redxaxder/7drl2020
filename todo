@@ -46,8 +46,8 @@ item effects!
   X restore stamina  (apple)
   X fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
   X attack buff (meat)       [x slash]     (attacks)
-  - trip buff   (bread)      [boots]       (trips)
-  - time freeze  (carrot)    [hourglass]   (turns)
+  X trip buff   (bread)      [boots]       (trips)
+  X time freeze  (carrot)    [hourglass]   (turns)
   - only-grass buff  (pear)  [watering can]  (steps)
 
 more plants!

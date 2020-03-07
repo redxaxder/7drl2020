@@ -37,6 +37,7 @@ newtype GameState = GameState
   , playerDidBurn :: Boolean
   , attackBuff :: Int
   , noTrip :: Int
+  , timeFreeze :: Int
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -61,7 +62,9 @@ transform id entityType = execState $ do
     }
 
 tick :: GameState -> GameState
-tick = clearBurn <<< tickItem <<< execState doCellularLogic <<< tickTransformations
+tick g@(GameState gs)= if gs.timeFreeze > 0
+  then GameState gs { timeFreeze = max 0 $ gs.timeFreeze - 1}
+  else (clearBurn <<< tickItem <<< execState doCellularLogic <<< tickTransformations) g
 
 clearBurn :: GameState -> GameState
 clearBurn (GameState gs) = GameState gs { playerDidBurn = false }
@@ -188,6 +191,7 @@ newGameState rng =
      , attackBuff: 0
      , playerDidBurn: false
      , noTrip: 0
+     , timeFreeze: 0
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -300,9 +304,14 @@ consumeItem i = do
   put $ GameState gs { inventory = inventory, entities = ets }
   case itemEffect of
     Just R.Restore -> modify_ $ alterStamina 2
-    Just R.Fire -> modify_ $ \(GameState x) -> GameState x { playerDidBurn = true }
-    Just R.AttackUp -> modify_ $ \(GameState x) -> GameState x { attackBuff = effectDuration }
-    Just R.NoTrip -> modify_ $ \(GameState x) -> GameState x { noTrip = effectDuration }
+    Just R.Fire -> modify_ $ 
+      \(GameState x) -> GameState x { playerDidBurn = true }
+    Just R.AttackUp -> modify_ $ 
+      \(GameState x) -> GameState x { attackBuff = effectDuration }
+    Just R.NoTrip -> modify_ $ 
+      \(GameState x) -> GameState x { noTrip = effectDuration }
+    Just R.TimeFreeze -> modify_ 
+      $ \(GameState x) -> GameState x { timeFreeze = effectDuration + 1}
     _ -> pure unit
 
 killEntity :: EntityId -> State GameState Unit
