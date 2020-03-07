@@ -28,13 +28,8 @@ import Data.Array as Array
 type Shift = Vector Int
 
 mainShift :: Shift
-mainShift = V {x:0,y:1}
+mainShift = V {x:1,y:1}
 
-inventoryShift :: Shift
-inventoryShift = V {x:0,y:7}
-
-staminaShift :: Shift
-staminaShift = V {x:0,y:0}
 draw :: Context -> UIState -> GameState -> Effect Unit
 draw ctx uiState gs = do
   clear ctx
@@ -58,13 +53,14 @@ drawGameOverScreen ctx (GameState {score}) = do
     ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx gs@(GameState {terrain, stamina}) = do
-  drawStamina ctx staminaShift stamina
+drawMainGame ctx gs@(GameState {terrain, stamina, attackBuff}) = do
+  drawStamina ctx (V {x:1,y:0}) stamina
   drawTerrain ctx mainShift terrain
   drawEntities ctx mainShift gs
   drawGrowth ctx mainShift gs
   drawDamage ctx mainShift gs
-  drawInventory ctx inventoryShift gs
+  drawInventory ctx (V {x:1,y:7}) gs
+  drawAttackUp ctx (V { x: 7, y:0 }) attackBuff
 
 drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
 drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
@@ -75,6 +71,12 @@ drawStamina ctx shift stamina =
   for_ (Array.range 0 5) \x ->
     let s = if stamina > x then Sprite.stamina else Sprite.blank
      in drawSpriteToGrid ctx s (V {x,y:0} + shift)
+
+drawAttackUp :: Context -> Shift -> Int -> Effect Unit
+drawAttackUp ctx shift attackUp = 
+  for_ (Array.range 0 3) \y ->
+    let s = if attackUp > y then Sprite.attackUp else Sprite.blank
+     in drawSpriteToGrid ctx s (V {x:0,y} + shift)
 
 drawInventory :: Context -> Shift -> GameState -> Effect Unit
 drawInventory ctx shift gs@(GameState {inventory}) = do

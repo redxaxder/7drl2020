@@ -20,7 +20,7 @@ tileMapDimensions =
 
 displayDimensions
   :: { width ∷ Int, height ∷ Int, drawWidth :: Int, drawHeight :: Int }
-displayDimensions = { width: 6, height: 8, drawWidth: 64, drawHeight: 64 }
+displayDimensions = { width: 8, height: 8, drawWidth: 64, drawHeight: 64 }
 
 canvasDimensions :: { width ∷ Number, height ∷ Number }
 canvasDimensions =
