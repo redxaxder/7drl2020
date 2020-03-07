@@ -291,7 +291,7 @@ consumeItem i = do
   let inventory = fromMaybe gs.inventory $ Array.deleteAt i gs.inventory
   let ets = case meid of
         Nothing -> gs.entities
-        Just eid = Map.delete eid gs.entities
+        Just eid -> Map.delete eid gs.entities
   put $ GameState gs { inventory = inventory, entities = ets }
   case itemEffect of
     Just R.Restore -> modify_ $ alterStamina 2
