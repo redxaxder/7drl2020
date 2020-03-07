@@ -348,9 +348,9 @@ consumeItem i = do
     Just R.Fire -> modify_ $ 
       \(GameState x) -> GameState x { playerDidBurn = true }
     Just R.AttackUp -> modify_ $ 
-      \(GameState x) -> GameState x { attackBuff = max 4 $ gs.attackBuff + 1 }
+      \(GameState x) -> GameState x { attackBuff = min 4 $ gs.attackBuff + 1 }
     Just R.NoTrip -> modify_ $ 
-      \(GameState x) -> GameState x { noTrip = max 4 $ gs.noTrip + 1 }
+      \(GameState x) -> GameState x { noTrip = min 4 $ gs.noTrip + 1 }
     Just R.TimeFreeze -> modify_ 
       $ \(GameState x) -> GameState x { timeFreeze = effectDuration + 1 }
     Just R.OnlyGrass -> modify_ 
