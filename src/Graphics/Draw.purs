@@ -57,7 +57,8 @@ drawMainGame ctx gs@(GameState { terrain
                                , stamina
                                , attackBuff
                                , noTrip
-                               , timeFreeze}) = do
+                               , timeFreeze
+                               , onlyGrass}) = do
   drawStamina ctx (V {x:1,y:0}) stamina
   drawTerrain ctx mainShift terrain
   drawEntities ctx mainShift gs
@@ -67,6 +68,7 @@ drawMainGame ctx gs@(GameState { terrain
   drawAttackUp ctx (V {x:7,y:0}) attackBuff
   drawNoTrip ctx (V {x:0,y:0}) noTrip
   drawTimeFreeze ctx (V {x:0,y:4}) timeFreeze
+  drawOnlyGrass ctx (V {x:7, y:4}) onlyGrass
 
 drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
 drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
@@ -94,6 +96,12 @@ drawTimeFreeze :: Context -> Shift -> Int -> Effect Unit
 drawTimeFreeze ctx shift timeFreeze =
   for_ (Array.range 0 3) \y ->
     let s = if timeFreeze > y then Sprite.timeFreeze else Sprite.blank
+      in drawSpriteToGrid ctx s (V {x:0, y} + shift)
+
+drawOnlyGrass :: Context -> Shift -> Int -> Effect Unit
+drawOnlyGrass ctx shift onlyGrass =
+  for_ (Array.range 0 3) \y ->
+    let s = if onlyGrass > y then Sprite.onlyGrass else Sprite.blank
       in drawSpriteToGrid ctx s (V {x:0, y} + shift)
 
 drawInventory :: Context -> Shift -> GameState -> Effect Unit
