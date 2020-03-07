@@ -21,6 +21,7 @@ import Random.Gen
   , runRandom'
   , split
   , unsafeElement
+  , unsafeWeightedElement
   )
 
 import Random.Blob

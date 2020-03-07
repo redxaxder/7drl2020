@@ -15,6 +15,7 @@ module Random.Gen
   , runRandom'
   , split
   , unsafeElement
+  , unsafeWeightedElement
   ) where
 
 import Extra.Prelude
@@ -92,8 +93,16 @@ element = unsafeElement <<< toArray
 
 unsafeElement :: forall a. Array a -> Random a
 unsafeElement arr = unsafeIndex arr <$> intRange 0 (length arr - 1)
-  where
-  unsafeIndex a i = unsafePartial $ fromJust $ Array.index a i
+
+unsafeIndex :: forall a. Array a -> Int -> a
+unsafeIndex a i = unsafePartial $ fromJust $ Array.index a i
+
+unsafeWeightedElement :: forall a. (a -> Int) -> Array a -> Random a
+unsafeWeightedElement weight xs = do
+  let cumWeights = Array.scanl (\cumWeight x -> cumWeight + weight x) 0 xs
+  w <- intRange 0 (unsafePartial (fromJust (Array.last cumWeights)) - 1)
+  let i = unsafePartial $ fromJust $ Array.findIndex (\cw -> cw > w) cumWeights
+  pure $ unsafeIndex xs i
 
 newtype Random a = Random (Gen -> { result :: a, nextGen :: Gen })
 

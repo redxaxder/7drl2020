@@ -4,12 +4,17 @@ import Extra.Prelude
 
 import Data.Bimap (Bimap)
 import Data.Array as Array
+import Data.Array.NonEmpty as NEArray
 import Data.Bimap as Bimap
 import Data.Map as Map
+import Data.Tuple as Tuple
+import Data.Ord (abs)
+
 import Data.Position (Position)
-import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
+import Data.Terrain (Terrain, initTerrain, TerrainType (..), blocksMovement, advanceTerrain)
 import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
 import Random (Gen, Random, runRandom, element, unsafeElement)
+import Random as Random
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
 import Data.Attributes as A
@@ -20,7 +25,6 @@ import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Typelevel.Num.Reps (D6)
-import Data.Unfoldable as Unfoldable
 
 newtype GameState = GameState
   { player :: EntityId
@@ -55,7 +59,7 @@ addTransformation t = modify_ $ Array.cons t
 transform :: EntityId -> EntityType -> GameState -> GameState
 transform id entityType = execState $ do
   GameState { positions } <- get
-  killEntity id
+  eraseEntity id
   createEntity $ EntityConfig
     { position: Bimap.lookup id positions
     , entityType
@@ -172,18 +176,25 @@ newtype EntityConfig = EntityConfig
   }
 
 newGameState :: Gen -> GameState
-newGameState rng =
+newGameState rng0 =
   let playerId = EntityId 0
+      inBounds (V{x,y}) = x >= 0 && x <= 5 && y >= 0 && y <= 5
+      { result: {playerPos, housePos}, nextGen } = flip runRandom rng0 do
+         housePos <- do
+            x <- unsafeElement (Array.range 0 5)
+            y <- unsafeElement (Array.range 0 5)
+            pure $ V{x,y}
+         playerPos <- unsafeElement $
+           (Array.filter inBounds $ move <$> [U,D,L,R] <*> pure housePos)
+         pure {housePos, playerPos}
   in GameState
      { player: playerId
      , stamina: 6
-     , positions: Bimap.singleton playerId (V{x:5,y:5})
-     , terrain: initTerrain
-     , entities:  Map.fromFoldable
-         [ Tuple playerId Player
-         ]
+     , positions: Bimap.singleton playerId playerPos
+     , terrain: initTerrain housePos
+     , entities: Map.fromFoldable [ Tuple playerId Player ]
      , nextEntityId: EntityId 1
-     , rng
+     , rng: nextGen
      , transformations: mempty
      , hp: mempty
      , score: 0
@@ -316,35 +327,41 @@ consumeItem i = do
 
 killEntity :: EntityId -> State GameState Unit
 killEntity id = do
-  g@(GameState {playerDidBurn} ) <- get
-  let mp = getEntityPosition id g
-      doScatter = checkEntityAttribute A.scatter id g
-      doFire = fromMaybe false $ do
-         fireResponse <- getEntityAttribute A.burns id g
-         _ <- Array.elemIndex fireResponse [R.Burn, R.Flash]
-         pure true
-      doVine = checkEntityAttribute A.parasiteTarget id g
-      neighbor = fromMaybe ff $ mp <#> \pos ->
-         flip any (neighbors pos g) \n ->
-           { doFire: checkEntityAttribute A.flame n g
-                 || (n == (getPlayer g) && playerDidBurn )
-           , doVine: checkEntityAttribute A.parasitic n g
-           }
-      spawnHere = {doFire,doVine} && neighbor
-  when doScatter $ do
-    let spawnLocations = do
-          p <- Unfoldable.fromMaybe mp
-          getAdjacentEmptySpaces p g
-    for_ spawnLocations spawnPlant
-  case spawnHere of
-       { doFire: true } -> do
-          let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
-          eid <- createEntity (EntityConfig { entityType: Fire, position: mp })
-          modifyEntityHp eid (\_ -> fireHp)
-       { doVine: true } -> 
-         void $ createEntity (EntityConfig { entityType: Vine, position: mp })
-       _ -> pure unit
+  g@(GameState {playerDidBurn,terrain} ) <- get
+  case getEntityPosition id g of
+    Nothing -> pure unit
+    Just position -> do
+      let doScatter = checkEntityAttribute A.scatter id g
+          doFire = fromMaybe false $ do
+             fireResponse <- getEntityAttribute A.burns id g
+             _ <- Array.elemIndex fireResponse [R.Burn, R.Flash]
+             pure true
+          doVine = checkEntityAttribute A.parasiteTarget id g
+          neighbor = flip any (neighbors position g) \n ->
+            { doFire: checkEntityAttribute A.flame n g
+                  || (n == (getPlayer g) && playerDidBurn )
+            , doVine: checkEntityAttribute A.parasitic n g
+            }
+          spawnHere = {doFire,doVine} && neighbor
+      -- advance terrain
+      terrain' <- hoist $ advanceTerrain position terrain
+      modify_ \(GameState gs) -> GameState gs {terrain = terrain'}
+      -- plant seeds in adjacent spaces
+      when doScatter $ for_ (getAdjacentEmptySpaces position g) spawnPlant
+      case spawnHere of
+           -- spawn fire here
+           { doFire: true } -> do
+              let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
+              eid <- createEntity (EntityConfig { entityType: Fire, position: Just position })
+              modifyEntityHp eid (\_ -> fireHp)
+           -- spawn a vine here
+           { doVine: true } ->
+             void $ createEntity (EntityConfig { entityType: Vine, position: Just position })
+           _ -> pure unit
+      eraseEntity id
 
+eraseEntity :: EntityId -> State GameState Unit
+eraseEntity id =
   modify_ $ \(GameState gs) -> GameState gs
     { positions = Bimap.delete id gs.positions
     , entities = Map.delete id gs.entities
@@ -353,16 +370,29 @@ killEntity id = do
         (\(Transformation{id: x}) -> x /= id) gs.transformations
     }
 
+plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
+plantWeight (Dirt n) { difficulty } =
+  let q = (4 - abs (n - difficulty))
+      result = q * q * q
+   in result
+plantWeight _ _ = 1
+
 spawnPlant :: Position -> State GameState Unit
-spawnPlant p =  do
-  (Tuple {entityType} duration) <- hoist $ element (entitiesWithAttribute A.plant)
-  id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
-  hoist $ addTransformation $ Transformation
-    { id
-    , into: entityType
-    , progress: -1
-    , duration
-    }
+spawnPlant p = do
+  (GameState {terrain}) <- get
+  case index terrain p of
+    Nothing -> pure unit
+    Just t -> do
+      (Tuple {entityType} {growth}) <-
+        hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd)
+          $ NEArray.toArray $ entitiesWithAttribute A.plant
+      id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
+      hoist $ addTransformation $ Transformation
+        { id
+        , into: entityType
+        , progress: -1
+        , duration: growth
+        }
 
 getPlayer :: GameState -> EntityId
 getPlayer (GameState {player}) = player

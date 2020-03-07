@@ -75,6 +75,7 @@ more plant interactions!
   X fire
   X vine
   X spore
+  - crowding
 
 difficulty progression
   - terrain advances
@@ -82,6 +83,6 @@ difficulty progression
   - plant transparency
   - terrain advancement affects spawn rates
 
-henhouse picture
+ X henhouse picture
 
-randomize start position
+ X randomize start position

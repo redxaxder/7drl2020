@@ -10,7 +10,7 @@ import Data.Attributes as A
 type AttributeType =
   ( blocking :: Unit
   , attackable :: Unit
-  , plant :: Int
+  , plant :: { growth :: Int, difficulty :: Int }
   , rooting :: Unit
   , root :: Unit
   , sprite :: Sprite
@@ -105,8 +105,8 @@ health :: Int -> Attribute
 health = Attribute <<< inj A.health
 
 -- growth time
-plant :: Int -> Attribute
-plant = Attribute <<< inj A.plant
+plant :: Int -> Int -> Attribute
+plant growth difficulty = Attribute <<< inj A.plant $ { growth, difficulty }
 
 -- stamina cost
 impedes :: Int -> Attribute
