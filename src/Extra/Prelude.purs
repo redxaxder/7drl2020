@@ -63,13 +63,14 @@ import Data.Foldable
  , any
  , foldMap
  , intercalate
+ , foldM
  )
 import Data.FoldableWithIndex (traverseWithIndex_, forWithIndex_, foldMapWithIndex, class FoldableWithIndex, foldrWithIndex, foldlWithIndex)
 import Data.HeytingAlgebra (tt,ff)
 import Data.Identity (Identity (..))
 import Data.Map (Map, alter, empty)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust)
+import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe, isJust, isNothing)
 import Control.MonadZero (guard)
 import Data.Monoid.Endo (Endo (..))
 import Data.Newtype (class Newtype, unwrap, un)

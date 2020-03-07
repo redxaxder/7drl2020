@@ -115,23 +115,33 @@ doCellularLogic = do
           (\neighborId -> checkEntityAttribute A.parasiteTarget neighborId g)
           (neighbors position g)
   -- next, do fire effects
-  let doFireEffect { entityId, fireEffect: R.Death } = killEntity entityId
-      doFireEffect { entityId, fireEffect: R.Burn } = modify_ $ doAttack entityId
-      doFireEffect { entityId, fireEffect: R.Dry } =
+  let doFireEffect :: Array EntityId -> {entityId :: EntityId, fireEffect :: R.Consequence } -> State GameState (Array EntityId)
+      doFireEffect safe { entityId, fireEffect: R.Death } = do
+        killEntity entityId
+        pure safe
+      doFireEffect safe { entityId, fireEffect: R.Burn } = do
+        modify_ $ doAttack entityId
+        pure safe
+      doFireEffect safe { entityId, fireEffect: R.Dry } = do
         modify_ $ \(GameState gs) ->
           GameState gs { entities = Map.insert entityId DryGrass gs.entities }
-      doFireEffect { entityId, fireEffect: R.Flash } =
+        pure safe
+      doFireEffect safe { entityId, fireEffect: R.Flash } = do
         case getEntityPosition entityId g of
-             Nothing -> pure unit
-             Just p -> do
-               killEntity entityId
-               burnNeighbors p
-      burnNeighbors :: Position -> State GameState Unit
-      burnNeighbors position = flip traverse_ (neighbors position g) \entityId ->
-        case getEntityAttribute A.burns entityId g of
-          Nothing -> pure unit
-          Just fireEffect -> doFireEffect { entityId, fireEffect }
-  let playerBurn = if playerDidBurn
+             Nothing -> pure safe
+             Just p -> if isNothing $ Array.elemIndex entityId safe
+               then do
+                 killEntity entityId
+                 burnNeighbors (Array.cons entityId safe) p
+               else pure safe
+      burnNeighbors :: Array EntityId -> Position -> State GameState (Array EntityId)
+      burnNeighbors safe position =
+        let go acc entityId =
+              case getEntityAttribute A.burns entityId g of
+                Nothing -> pure acc
+                Just fireEffect -> doFireEffect acc { entityId, fireEffect }
+         in foldM go safe (neighbors position g)
+      playerBurn = if playerDidBurn
         then Array.singleton $ playerPosition g
         else mempty
       fires = flip foldMapWithIndex positions \entityId position ->
@@ -139,7 +149,7 @@ doCellularLogic = do
                         then Array.singleton {entityId, position}
                         else mempty
       burnPositions = playerBurn <> (_.position <$> fires)
-  for_ burnPositions burnNeighbors
+  _ <- foldM burnNeighbors mempty burnPositions
   for_ (_.entityId <$> fires) (modify_ <<< doAttack)
 
 tickTransformations :: GameState -> GameState
