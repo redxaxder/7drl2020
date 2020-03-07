@@ -169,18 +169,25 @@ newtype EntityConfig = EntityConfig
   }
 
 newGameState :: Gen -> GameState
-newGameState rng =
+newGameState rng0 =
   let playerId = EntityId 0
+      inBounds (V{x,y}) = x >= 0 && x <= 5 && y >= 0 && y <= 5
+      { result: {playerPos, housePos}, nextGen } = flip runRandom rng0 do
+         housePos <- do
+            x <- unsafeElement (Array.range 0 5)
+            y <- unsafeElement (Array.range 0 5)
+            pure $ V{x,y}
+         playerPos <- unsafeElement $
+           (Array.filter inBounds $ move <$> [U,D,L,R] <*> pure housePos)
+         pure {housePos, playerPos}
   in GameState
      { player: playerId
      , stamina: 6
-     , positions: Bimap.singleton playerId (V{x:5,y:5})
-     , terrain: initTerrain
-     , entities:  Map.fromFoldable
-         [ Tuple playerId Player
-         ]
+     , positions: Bimap.singleton playerId playerPos
+     , terrain: initTerrain housePos
+     , entities: Map.fromFoldable [ Tuple playerId Player ]
      , nextEntityId: EntityId 1
-     , rng
+     , rng: nextGen
      , transformations: mempty
      , hp: mempty
      , score: 0

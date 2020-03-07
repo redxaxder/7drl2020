@@ -12,14 +12,22 @@ newtype Dim w h f a = Dim (f a)
 
 class Indexable (f :: Type -> Type) where
   ix :: forall a. f a -> Int -> Maybe a
+  ins :: forall a. Int -> a -> f a -> Maybe (f a)
 
 instance indexableArray :: Indexable Array where
   ix = Array.index
+  ins = Array.insertAt
 
 index :: forall w h a f. Indexable f => Nat w => Nat h
   => Dim w h f a -> Vector Int -> Maybe a
 index (Dim array) i =
   toLinearIndex (Proxy :: Proxy w) (Proxy :: Proxy h) i >>= ix array
+
+insertAt :: forall w h a f. Indexable f => Nat w => Nat h
+  => Vector Int -> a -> Dim w h f a -> Maybe (Dim w h f a)
+insertAt v x (Dim array) = do
+  i <- toLinearIndex (Proxy :: Proxy w) (Proxy :: Proxy h) v
+  Dim <$> ins i x array
 
 toLinearIndex :: forall w h. Nat w => Nat h => Proxy w -> Proxy h -> Vector Int -> Maybe Int
 toLinearIndex w h (V {x,y}) = do
