@@ -45,7 +45,7 @@ inventory system (3 slots?)
 item effects!
   X restore stamina  (apple)
   X fire!  (torch)  -- burn all adjacent spaces. at least damages. maybe enflames
-  - attack buff (meat)       [x slash]     (attacks)
+  X attack buff (meat)       [x slash]     (attacks)
   - trip buff   (bread)      [boots]       (trips)
   - time freeze  (carrot)    [hourglass]   (turns)
   - only-grass buff  (pear)  [watering can]  (steps)

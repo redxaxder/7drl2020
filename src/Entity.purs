@@ -81,7 +81,7 @@ entityTable = Map.fromFoldable
 
   -- Consumables
   , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
-  -- , t Bread  [ spriteAttr 15 28, item R.NoTrip ]
+  , t Bread  [ spriteAttr 15 28, item R.NoTrip ]
   , t Apple  [ spriteAttr 15 29, item R.Restore ]
   -- , t Pear   [ spriteAttr 16 29, item R.OnlyGrass ]
   -- , t Carrot [ spriteAttr 18 30, item R.TimeFreeze ]

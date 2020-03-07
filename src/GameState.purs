@@ -36,6 +36,7 @@ newtype GameState = GameState
   , inventory :: Array EntityId
   , playerDidBurn :: Boolean
   , attackBuff :: Int
+  , noTrip :: Int
   }
 
 derive instance newtypeGameState :: Newtype GameState _
@@ -186,6 +187,7 @@ newGameState rng =
      , inventory: mempty
      , attackBuff: 0
      , playerDidBurn: false
+     , noTrip: 0
      }
 
 createEntity :: EntityConfig -> State GameState EntityId
@@ -281,6 +283,9 @@ collectItem id = do
                     , positions = Bimap.delete id positions
                     }
 
+effectDuration :: Int
+effectDuration = 4
+
 consumeItem :: Int -> State GameState Unit
 consumeItem i = do
   g@(GameState gs) <- get
@@ -296,7 +301,8 @@ consumeItem i = do
   case itemEffect of
     Just R.Restore -> modify_ $ alterStamina 2
     Just R.Fire -> modify_ $ \(GameState x) -> GameState x { playerDidBurn = true }
-    Just R.AttackUp -> modify_ $ \(GameState x) -> GameState x { attackBuff = 4 }
+    Just R.AttackUp -> modify_ $ \(GameState x) -> GameState x { attackBuff = effectDuration }
+    Just R.NoTrip -> modify_ $ \(GameState x) -> GameState x { noTrip = effectDuration }
     _ -> pure unit
 
 killEntity :: EntityId -> State GameState Unit

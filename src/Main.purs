@@ -45,7 +45,7 @@ update gs a = tick <$> handleAction gs a
 handleAction :: GameState -> Action -> Maybe GameState
 handleAction (GameState {rng}) StartGame = Just $ newGameState rng
 handleAction gs (UseItem i) = Just $ execState (GS.consumeItem i) gs
-handleAction gs (Move dir) = flip evalState gs $ do
+handleAction gs@(GameState g) (Move dir) = flip evalState gs $ do
   -- In this block we have both the gamestate argument (gs) and the
   -- gamestate State available. For reading we use the argument. This represents
   -- how things were at the start of the turn, and this is what checks should
@@ -58,7 +58,10 @@ handleAction gs (Move dir) = flip evalState gs $ do
       when (GS.checkEntityAttribute A.item occupant gs) $ -- item
         GS.collectItem occupant
       case GS.getEntityAttribute A.impedes occupant gs of -- tripping obstacle
-        Just moveCost -> modify_ $ GS.alterStamina ((-1) * moveCost)
+        Just moveCost -> do
+          let mc = if g.noTrip > 0 then 0 else moveCost
+          put $ GameState g { noTrip = max 0 $ g.noTrip - 1 }
+          modify_ $ GS.alterStamina ((-1) * mc)
         Nothing -> pure unit
   placeEntity (getPlayer gs) newPos
   GS.spawnPlant oldPos
