@@ -4,12 +4,17 @@ import Extra.Prelude
 
 import Data.Bimap (Bimap)
 import Data.Array as Array
+import Data.Array.NonEmpty as NEArray
 import Data.Bimap as Bimap
 import Data.Map as Map
+import Data.Tuple as Tuple
+import Data.Ord (abs)
+
 import Data.Position (Position)
-import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement, advanceTerrain)
+import Data.Terrain (Terrain, initTerrain, TerrainType (..), blocksMovement, advanceTerrain)
 import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
 import Random (Gen, Random, runRandom, element, unsafeElement)
+import Random as Random
 import DimArray (Dim, index)
 import Direction (move, Direction (..))
 import Data.Attributes as A
@@ -356,16 +361,29 @@ eraseEntity id =
         (\(Transformation{id: x}) -> x /= id) gs.transformations
     }
 
+plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
+plantWeight (Dirt n) { difficulty } =
+  let q = (4 - abs (n - difficulty))
+      result = q * q * q
+   in result
+plantWeight _ _ = 1
+
 spawnPlant :: Position -> State GameState Unit
-spawnPlant p =  do
-  (Tuple {entityType} duration) <- hoist $ element (entitiesWithAttribute A.plant)
-  id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
-  hoist $ addTransformation $ Transformation
-    { id
-    , into: entityType
-    , progress: -1
-    , duration
-    }
+spawnPlant p = do
+  (GameState {terrain}) <- get
+  case index terrain p of
+    Nothing -> pure unit
+    Just t -> do
+      (Tuple {entityType} {growth}) <-
+        hoist $ Random.unsafeWeightedElement (plantWeight t <<< Tuple.snd)
+          $ NEArray.toArray $ entitiesWithAttribute A.plant
+      id <- createEntity (EntityConfig { position: Just p, entityType: Seed })
+      hoist $ addTransformation $ Transformation
+        { id
+        , into: entityType
+        , progress: -1
+        , duration: growth
+        }
 
 getPlayer :: GameState -> EntityId
 getPlayer (GameState {player}) = player

@@ -74,10 +74,10 @@ entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
   [ t Player   [ spriteAttr 26 7 ]
   -- spawnable plants
-  , t Grass    [ spriteAttr 0 2, plant 1, R.burns R.Dry ]
-  , t Tree     [ spriteAttr 0 1, health 3, plant 6, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
-  , t Pod    [ spriteAttr 20 5, plant 1, R.scatter, R.burns R.Death ]
-  , t Vine   [ spriteAttr 2 2, plant 6, R.parasitic, attackable, blocking, R.burns R.Burn ]
+  , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry ]
+  , t Tree     [ spriteAttr 0 1, health 3, plant 4 4, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
+  , t Pod    [ spriteAttr 20 5, plant 1 2, R.scatter, R.burns R.Death ]
+  , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn ]
 
   -- Consumables
   , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
