@@ -28,10 +28,5 @@ onlyGrass = spriteAt 14 25
 blank :: Sprite
 blank = spriteAt 0 0
 
-one :: Sprite
-one = spriteAt 20 29
-two :: Sprite
-two = spriteAt 21 29
-three :: Sprite
-three = spriteAt 22 29
-
+digitSprite :: Int -> Sprite
+digitSprite i  = spriteAt (19 + i) 29

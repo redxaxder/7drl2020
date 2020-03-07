@@ -24,6 +24,8 @@ import GameState (Transformation(..), getEntityPosition, getEntityAttribute)
 import Data.Attributes as A
 import Data.Sprite as Sprite
 import Data.Array as Array
+import Data.String.CodeUnits as String
+import Data.Int as Int
 
 type Shift = Vector Int
 
@@ -56,6 +58,7 @@ drawMainGame :: Context -> GameState -> Effect Unit
 drawMainGame ctx gs@(GameState { terrain
                                , stamina
                                , attackBuff
+                               , score
                                , noTrip
                                , timeFreeze
                                , onlyGrass}) = do
@@ -69,6 +72,7 @@ drawMainGame ctx gs@(GameState { terrain
   drawNoTrip ctx (V {x:0,y:0}) noTrip
   drawTimeFreeze ctx (V {x:0,y:4}) timeFreeze
   drawOnlyGrass ctx (V {x:7, y:4}) onlyGrass
+  drawScore ctx (V {x:4, y:7}) score
 
 drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
 drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
@@ -106,16 +110,28 @@ drawOnlyGrass ctx shift onlyGrass =
 
 drawInventory :: Context -> Shift -> GameState -> Effect Unit
 drawInventory ctx shift gs@(GameState {inventory}) = do
-  drawSpriteToGrid ctx Sprite.one (V{x:0,y:0} + shift)
-  drawSpriteToGrid ctx Sprite.two (V{x:2,y:0} + shift)
-  drawSpriteToGrid ctx Sprite.three (V{x:4,y:0} + shift)
   for_ (Array.range 0 2) \i ->
      let sprite = fromMaybe Sprite.blank
            $ Array.index inventory i >>= \id
            -> getEntityAttribute A.sprite id gs
       in do
-        drawSpriteToGrid ctx Sprite.blank (V{x: i*2 + 1, y:0} + shift)
-        drawSpriteToGrid ctx sprite (V{x: i*2 + 1, y:0} + shift)
+        drawSpriteToGrid ctx Sprite.blank (V{x: i, y: 0} + shift)
+        drawSpriteToGrid ctx sprite (V{x: i, y: 0} + shift)
+
+digits :: Int -> Array Int
+digits n = n # show
+  >>> String.toCharArray
+  >>> map String.singleton
+  >>> map Int.fromString
+  >>> Array.catMaybes
+  >>> append [0,0,0]
+  >>> Array.takeEnd 3
+
+drawScore :: Context -> Shift -> Int -> Effect Unit
+drawScore ctx shift score =
+  let ds = digits score
+   in forWithIndex_ ds \i d ->
+        drawSpriteToGrid ctx (Sprite.digitSprite d) (V{x:i, y:0} + shift)
 
 drawEntities :: Context -> Shift -> GameState -> Effect Unit
 drawEntities ctx shift g@(GameState gs) =
