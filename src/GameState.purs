@@ -68,7 +68,7 @@ transform id entityType = execState $ do
 
 tick :: GameState -> GameState
 tick g@(GameState gs)= if gs.timeFreeze > 0
-  then GameState gs { timeFreeze = max 0 $ gs.timeFreeze - 1}
+  then tickItem $ GameState gs { timeFreeze = max 0 $ gs.timeFreeze - 1}
   else (clearBurn <<< tickItem <<< execState doCellularLogic <<< tickTransformations) g
 
 clearBurn :: GameState -> GameState
@@ -348,9 +348,9 @@ consumeItem i = do
     Just R.Fire -> modify_ $ 
       \(GameState x) -> GameState x { playerDidBurn = true }
     Just R.AttackUp -> modify_ $ 
-      \(GameState x) -> GameState x { attackBuff = effectDuration }
+      \(GameState x) -> GameState x { attackBuff = gs.attackBuff + 1 }
     Just R.NoTrip -> modify_ $ 
-      \(GameState x) -> GameState x { noTrip = effectDuration }
+      \(GameState x) -> GameState x { noTrip = gs.noTrip + 1 }
     Just R.TimeFreeze -> modify_ 
       $ \(GameState x) -> GameState x { timeFreeze = effectDuration + 1 }
     Just R.OnlyGrass -> modify_ 
