@@ -105,7 +105,9 @@ drawInventory ctx shift gs@(GameState {inventory}) = do
      let sprite = fromMaybe Sprite.blank
            $ Array.index inventory i >>= \id
            -> getEntityAttribute A.sprite id gs
-      in drawSpriteToGrid ctx sprite (V{x: i*2 + 1, y:0} + shift)
+      in do
+        drawSpriteToGrid ctx Sprite.blank (V{x: i*2 + 1, y:0} + shift)
+        drawSpriteToGrid ctx sprite (V{x: i*2 + 1, y:0} + shift)
 
 drawEntities :: Context -> Shift -> GameState -> Effect Unit
 drawEntities ctx shift g@(GameState gs) =
