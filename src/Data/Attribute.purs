@@ -23,6 +23,7 @@ type AttributeType =
   , burns :: Consequence
   , flame :: Unit
   , crowded :: Consequence
+  , crowds :: Unit
   )
 
 data ItemEffect = Restore | Fire | AttackUp | NoTrip | TimeFreeze | OnlyGrass
@@ -94,6 +95,9 @@ parasiteTarget = Attribute $ inj A.parasiteTarget unit
 
 flame :: Attribute
 flame = Attribute $ inj A.flame unit
+
+crowds :: Attribute
+crowds = Attribute $ inj A.crowds unit
 
 -------------------------------------------------------------------------------
 -- Attributes with data

@@ -46,3 +46,6 @@ flame = SProxy
 
 crowded :: SProxy "crowded"
 crowded = SProxy
+
+crowds :: SProxy "crowds"
+crowds = SProxy
