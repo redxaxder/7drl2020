@@ -36,8 +36,8 @@ nextTerrain :: TerrainType -> Tuple Int TerrainType
 nextTerrain House = Tuple 0 House
 nextTerrain (Dirt i) = case i of
   0 -> Tuple 30 (Dirt 1)
-  1 -> Tuple 15 (Dirt 2)
-  2 -> Tuple 5  (Dirt 3)
+  1 -> Tuple 20 (Dirt 2)
+  2 -> Tuple 20 (Dirt 3)
   _ -> Tuple 0  (Dirt 3)
 
 advanceTerrain :: Position -> Terrain -> Random Terrain
