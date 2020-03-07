@@ -53,7 +53,10 @@ drawGameOverScreen ctx (GameState {score}) = do
     ]
 
 drawMainGame :: Context -> GameState -> Effect Unit
-drawMainGame ctx gs@(GameState {terrain, stamina, attackBuff}) = do
+drawMainGame ctx gs@(GameState { terrain
+                               , stamina
+                               , attackBuff
+                               , noTrip}) = do
   drawStamina ctx (V {x:1,y:0}) stamina
   drawTerrain ctx mainShift terrain
   drawEntities ctx mainShift gs
@@ -61,6 +64,7 @@ drawMainGame ctx gs@(GameState {terrain, stamina, attackBuff}) = do
   drawDamage ctx mainShift gs
   drawInventory ctx (V {x:1,y:7}) gs
   drawAttackUp ctx (V { x: 7, y:0 }) attackBuff
+  drawNoTrip ctx (V {x: 0, y:0 }) noTrip
 
 drawTerrain :: Context -> Shift -> Terrain -> Effect Unit
 drawTerrain ctx shift = traverseWithIndex_ $ \pos terrainType ->
@@ -77,6 +81,12 @@ drawAttackUp ctx shift attackUp =
   for_ (Array.range 0 3) \y ->
     let s = if attackUp > y then Sprite.attackUp else Sprite.blank
      in drawSpriteToGrid ctx s (V {x:0,y} + shift)
+
+drawNoTrip :: Context -> Shift -> Int -> Effect Unit
+drawNoTrip ctx shift noTrip =
+  for_ (Array.range 0 3) \y ->
+    let s = if noTrip > y then Sprite.noTrip else Sprite.blank
+      in drawSpriteToGrid ctx s (V {x:0, y} + shift)
 
 drawInventory :: Context -> Shift -> GameState -> Effect Unit
 drawInventory ctx shift gs@(GameState {inventory}) = do
