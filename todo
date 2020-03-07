@@ -68,20 +68,23 @@ more plants!
     X 1 hp
     X attackable
   - mushroom
-  - cactus (image)
+  X cactus (image)
+    X time: 1
+    X 4 hp
+    X attackable
   - thornbush (image)
 
 more plant interactions!
   X fire
   X vine
   X spore
-  - crowding
+  X crowding
 
 difficulty progression
-  - terrain advances
-  - display terrain advancement
-  - plant transparency
-  - terrain advancement affects spawn rates
+  X terrain advances
+  X display terrain advancement
+  X plant transparency
+  X terrain advancement affects spawn rates
 
  X henhouse picture
 

@@ -33,7 +33,7 @@ derive instance eqEntityId :: Eq EntityId
 derive instance ordEntityId :: Ord EntityId
 
 data EntityType = Player | Seed | Roots | DryGrass | Fire
-  | Grass | Tree | Pod | Vine
+  | Grass | Tree | Pod | Vine | Cactus
   | Apple | Pear | Carrot | Meat | Bread | Torch
 data SpawnEffect = MkRoots
 data Need = NeedRoots
@@ -74,10 +74,11 @@ entityTable :: Map EntityType EntityRow
 entityTable = Map.fromFoldable
   [ t Player   [ spriteAttr 26 7 ]
   -- spawnable plants
-  , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry ]
+  , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry, R.crowded R.Dry ]
   , t Tree     [ spriteAttr 0 1, health 3, plant 4 4, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
-  , t Pod    [ spriteAttr 20 5, plant 1 2, R.scatter, R.burns R.Death ]
-  , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn ]
+  , t Pod    [ spriteAttr 20 5, plant 1 2, R.scatter, R.burns R.Harm ]
+  , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn, R.crowded R.Harm ]
+  , t Cactus [ spriteAttr 6 1, plant 0 6, health 4, attackable, R.crowded R.Harm ]
 
   -- Consumables
   , t Meat   [ spriteAttr 16 28, item R.AttackUp ]
@@ -88,10 +89,10 @@ entityTable = Map.fromFoldable
   , t Torch  [ spriteAttr 11 25, item R.Fire ]
 
   -- misc
-  , t Seed     [ spriteAttr 13 0, R.burns R.Death ]
+  , t Seed     [ spriteAttr 13 0, R.burns R.Harm ]
   , t Roots    [ spriteAttr 16 1, root, impedes 1 ]
   , t Fire     [ spriteAttr 15 10, blocking, R.flame ]
-  , t DryGrass [ spriteAttr 21 2,  R.burns R.Flash ]
+  , t DryGrass [ spriteAttr 21 2,  R.burns R.Flash, R.crowded R.Harm ]
   ]
 
 increment :: EntityId -> EntityId

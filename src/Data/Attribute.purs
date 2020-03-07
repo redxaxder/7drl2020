@@ -22,10 +22,11 @@ type AttributeType =
   , parasiteTarget :: Unit
   , burns :: Consequence
   , flame :: Unit
+  , crowded :: Consequence
   )
 
 data ItemEffect = Restore | Fire | AttackUp | NoTrip | TimeFreeze | OnlyGrass
-data Consequence = Flash | Burn | Dry | Death
+data Consequence = Flash | Burn | Dry | Harm
 
 derive instance eqItemEffect :: Eq ItemEffect
 derive instance ordItemEffect :: Ord ItemEffect
@@ -114,5 +115,9 @@ impedes = Attribute <<< inj A.impedes
 
 item :: ItemEffect -> Attribute
 item = Attribute <<< inj A.item
+
 burns :: Consequence -> Attribute
 burns = Attribute <<< inj A.burns
+
+crowded :: Consequence -> Attribute
+crowded = Attribute <<< inj A.crowded

@@ -112,9 +112,19 @@ doCellularLogic = do
                in if all satisfied reqs
                   then []
                   else [entityId]
-  for_ starving killEntity
-  -- kill overcrowded plants
-  -- TODO
+  for_ starving $ modify <<< doAttack
+  -- handle overcrowded plants
+  let overcrowded = flip foldMapWithIndex positions \entityId position ->
+        case getEntityAttribute A.crowded entityId g of
+          Nothing -> mempty
+          Just consequence -> do
+             guard $ Array.null $ getAdjacentEmptySpaces8 position g
+             Array.singleton {consequence, entityId}
+  for_ overcrowded $ case _ of
+    { consequence: R.Dry, entityId } -> modify_ $ \(GameState gs) ->
+      GameState gs { entities = Map.insert entityId DryGrass gs.entities }
+    { consequence: R.Harm, entityId } -> modify_ $ doAttack entityId
+    _otherwise -> pure unit
   -- next, do vine damage
   traverse_ (modify_ <<< doAttack) $
     flip foldMapWithIndex positions \entityId position ->
@@ -125,8 +135,8 @@ doCellularLogic = do
           (neighbors position g)
   -- next, do fire effects
   let doFireEffect :: Array EntityId -> {entityId :: EntityId, fireEffect :: R.Consequence } -> State GameState (Array EntityId)
-      doFireEffect safe { entityId, fireEffect: R.Death } = do
-        killEntity entityId
+      doFireEffect safe { entityId, fireEffect: R.Harm } = do
+        modify_ $ doAttack entityId
         pure safe
       doFireEffect safe { entityId, fireEffect: R.Burn } = do
         modify_ $ doAttack entityId
@@ -274,6 +284,24 @@ getAdjacentEmptySpaces pos g@(GameState { positions, terrain }) =
                          Nothing -> false
                          Just t -> not (blocksMovement t)
 
+getAdjacentEmptySpaces8 :: Position -> GameState -> Array Position
+getAdjacentEmptySpaces8 pos g@(GameState { positions, terrain }) =
+  Array.filter isGood $ (+) <$> dir8 <*> pure pos
+  where
+  dir8 = [ V{ x:  0, y:  1 }
+         , V{ x:  0, y: -1 }
+         , V{ x:  1, y:  0 }
+         , V{ x: -1, y:  0 }
+         , V{ x:  1, y:  1 }
+         , V{ x:  1, y: -1 }
+         , V{ x: -1, y:  1 }
+         , V{ x: -1, y: -1 }
+         ]
+  isGood p = not (isJust $ getOccupant p g) && isFreeTerrain p
+  isFreeTerrain p = case index terrain p of
+                         Nothing -> false
+                         Just t -> not (blocksMovement t)
+
 doPlayerAttack :: EntityId -> GameState -> GameState
 doPlayerAttack id g = flip execState g do
   (GameState gs@{attackBuff}) <- get
@@ -376,7 +404,7 @@ eraseEntity id =
 
 plantWeight :: forall e. TerrainType -> { difficulty :: Int | e } -> Int
 plantWeight (Dirt n) { difficulty } =
-  let q = (4 - abs (n - difficulty))
+  let q = (6 - abs (n - difficulty))
       result = q * q * q
    in result
 plantWeight _ _ = 1
