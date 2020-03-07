@@ -76,7 +76,7 @@ entityTable = Map.fromFoldable
   -- spawnable plants
   , t Grass    [ spriteAttr 0 2, plant 1 0, R.burns R.Dry, R.crowded R.Dry ]
   , t Tree     [ spriteAttr 0 1, health 3, plant 4 4, rooting, blocking, attackable, R.burns R.Burn, R.parasiteTarget]
-  , t Pod    [ spriteAttr 20 5, plant 1 2, R.scatter, R.burns R.Harm ]
+  , t Pod    [ spriteAttr 6 0, plant 1 2, R.scatter, R.burns R.Harm ]
   , t Vine   [ spriteAttr 2 2, plant 4 1, R.parasitic, attackable, blocking, R.burns R.Burn, R.crowded R.Harm ]
   , t Cactus [ spriteAttr 6 1, plant 0 6, health 4, attackable, R.crowded R.Harm ]
 
