@@ -7,7 +7,7 @@ import Data.Array as Array
 import Data.Bimap as Bimap
 import Data.Map as Map
 import Data.Position (Position)
-import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement)
+import Data.Terrain (Terrain, initTerrain, TerrainType, blocksMovement, advanceTerrain)
 import Entity (EntityType (..), EntityId (..), increment, hasAttribute, getAttribute, hasFlag, entitiesWithAttribute)
 import Random (Gen, Random, runRandom, element, unsafeElement)
 import DimArray (Dim, index)
@@ -20,7 +20,6 @@ import Data.Lens.Zoom (zoom)
 import Data.Lens.Record (prop)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Typelevel.Num.Reps (D6)
-import Data.Unfoldable as Unfoldable
 
 newtype GameState = GameState
   { player :: EntityId
@@ -54,7 +53,7 @@ addTransformation t = modify_ $ Array.cons t
 transform :: EntityId -> EntityType -> GameState -> GameState
 transform id entityType = execState $ do
   GameState { positions } <- get
-  killEntity id
+  eraseEntity id
   createEntity $ EntityConfig
     { position: Bimap.lookup id positions
     , entityType
@@ -314,35 +313,41 @@ consumeItem i = do
 
 killEntity :: EntityId -> State GameState Unit
 killEntity id = do
-  g@(GameState {playerDidBurn} ) <- get
-  let mp = getEntityPosition id g
-      doScatter = checkEntityAttribute A.scatter id g
-      doFire = fromMaybe false $ do
-         fireResponse <- getEntityAttribute A.burns id g
-         _ <- Array.elemIndex fireResponse [R.Burn, R.Flash]
-         pure true
-      doVine = checkEntityAttribute A.parasiteTarget id g
-      neighbor = fromMaybe ff $ mp <#> \pos ->
-         flip any (neighbors pos g) \n ->
-           { doFire: checkEntityAttribute A.flame n g
-                 || (n == (getPlayer g) && playerDidBurn )
-           , doVine: checkEntityAttribute A.parasitic n g
-           }
-      spawnHere = {doFire,doVine} && neighbor
-  when doScatter $ do
-    let spawnLocations = do
-          p <- Unfoldable.fromMaybe mp
-          getAdjacentEmptySpaces p g
-    for_ spawnLocations spawnPlant
-  case spawnHere of
-       { doFire: true } -> do
-          let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
-          eid <- createEntity (EntityConfig { entityType: Fire, position: mp })
-          modifyEntityHp eid (\_ -> fireHp)
-       { doVine: true } -> 
-         void $ createEntity (EntityConfig { entityType: Vine, position: mp })
-       _ -> pure unit
+  g@(GameState {playerDidBurn,terrain} ) <- get
+  case getEntityPosition id g of
+    Nothing -> pure unit
+    Just position -> do
+      let doScatter = checkEntityAttribute A.scatter id g
+          doFire = fromMaybe false $ do
+             fireResponse <- getEntityAttribute A.burns id g
+             _ <- Array.elemIndex fireResponse [R.Burn, R.Flash]
+             pure true
+          doVine = checkEntityAttribute A.parasiteTarget id g
+          neighbor = flip any (neighbors position g) \n ->
+            { doFire: checkEntityAttribute A.flame n g
+                  || (n == (getPlayer g) && playerDidBurn )
+            , doVine: checkEntityAttribute A.parasitic n g
+            }
+          spawnHere = {doFire,doVine} && neighbor
+      -- advance terrain
+      terrain' <- hoist $ advanceTerrain position terrain
+      modify_ \(GameState gs) -> GameState gs {terrain = terrain'}
+      -- plant seeds in adjacent spaces
+      when doScatter $ for_ (getAdjacentEmptySpaces position g) spawnPlant
+      case spawnHere of
+           -- spawn fire here
+           { doFire: true } -> do
+              let fireHp = fromMaybe 1 $ getEntityAttribute A.health id g
+              eid <- createEntity (EntityConfig { entityType: Fire, position: Just position })
+              modifyEntityHp eid (\_ -> fireHp)
+           -- spawn a vine here
+           { doVine: true } ->
+             void $ createEntity (EntityConfig { entityType: Vine, position: Just position })
+           _ -> pure unit
+      eraseEntity id
 
+eraseEntity :: EntityId -> State GameState Unit
+eraseEntity id =
   modify_ $ \(GameState gs) -> GameState gs
     { positions = Bimap.delete id gs.positions
     , entities = Map.delete id gs.entities

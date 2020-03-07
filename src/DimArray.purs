@@ -16,16 +16,16 @@ class Indexable (f :: Type -> Type) where
 
 instance indexableArray :: Indexable Array where
   ix = Array.index
-  ins = Array.insertAt
+  ins = Array.updateAt
 
 index :: forall w h a f. Indexable f => Nat w => Nat h
   => Dim w h f a -> Vector Int -> Maybe a
 index (Dim array) i =
   toLinearIndex (Proxy :: Proxy w) (Proxy :: Proxy h) i >>= ix array
 
-insertAt :: forall w h a f. Indexable f => Nat w => Nat h
+updateAt :: forall w h a f. Indexable f => Nat w => Nat h
   => Vector Int -> a -> Dim w h f a -> Maybe (Dim w h f a)
-insertAt v x (Dim array) = do
+updateAt v x (Dim array) = do
   i <- toLinearIndex (Proxy :: Proxy w) (Proxy :: Proxy h) v
   Dim <$> ins i x array
 
