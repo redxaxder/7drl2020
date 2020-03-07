@@ -1,26 +1,6 @@
-/*
- * https://github.com/purescript/spago#make-a-project-with-purescript--javascript
- */
-
 var Main = require('../../output/Main');
 
 function main () {
-    /*
-    Here we could add variables such as
-
-    var baseUrl = process.env.BASE_URL;
-
-    Parcel will replace `process.env.BASE_URL`
-    with the string contents of the BASE_URL environment
-    variable at bundle/build time.
-    A .env file can also be used to override shell variables
-    for more information, see https://en.parceljs.org/env.html
-
-    These variables can be supplied to the Main.main function.
-    However, you will need to change the type to accept variables, by default it is an Effect.
-    You will probably want to make it a function from String -> Effect ()
-  */
-
   Main.main();
 }
 
@@ -32,6 +12,11 @@ if (module.hot) {
   });
 }
 
-console.log('Starting app');
+document.addEventListener("keydown", function(e) {
+  // suppress page scrolling from keyboard input
+  if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    e.preventDefault();
+  }
+}, false);
 
 main();
